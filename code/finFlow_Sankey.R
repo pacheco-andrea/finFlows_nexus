@@ -3,15 +3,24 @@
 # Author: Andrea Pacheco
 # first run: Oct 5th 2023
 
-
 # libraries
 library(dplyr)
 library(tidyr)
 library(tidyverse)
 library(networkD3)
 library(ggplot2)
-library(treemap)
 
+# directory
+wdmain <- "G:/My Drive/Projects/IPBES-Nexus/analyses/finFlows_nexus/"
+
+# get simplified data
+data <- read.csv(paste0(wdmain, "data/BD_allFinanceFlows_simplified.csv"))
+
+# start with how nexusy positive flows are:
+pos_data <- data[which(data$Categ_impact == "Positive"),]
+nrow(pos_data)
+table(pos_data$HowNexusy)
+pos_data[55:60,]
 
 # how would I make this work for a sankey or alluvial-type figure? ----
 

@@ -20,7 +20,6 @@
 library(dplyr)
 library(tidyr)
 library(tidyverse)
-library(networkD3)
 library(ggplot2)
 library(treemap)
 
