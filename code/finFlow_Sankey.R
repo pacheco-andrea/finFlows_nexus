@@ -1,6 +1,7 @@
-# Global biodiversity flows and the nexus 
+# Global biodiversity finance flows and the nexus 
 # Part of work for Chapter 6 of the IPBES Nexus Assessment
 # Author: Andrea Pacheco
+# first run: Oct 5th 2023
 
 
 # libraries
@@ -10,8 +11,6 @@ library(tidyverse)
 library(networkD3)
 library(ggplot2)
 library(treemap)
-
-
 
 
 # how would I make this work for a sankey or alluvial-type figure? ----
