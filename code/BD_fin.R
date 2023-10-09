@@ -27,31 +27,30 @@ library(treemap)
 # set directories
 wdmain <- "G:/My Drive/Projects/IPBES-Nexus/analyses/finFlows_nexus/"
 
-# read data on ALL volumes of financial flows to biodiversity
-bd_fin <- read.csv(paste0(wdmain, "data/BD_allFinanceFlows.csv")) # this data describes all kinds of financial flows for biodiversity finance
-
-# clean this data:
-head(bd_fin)
-bd_fin2 <- bd_fin[,-c(11:12)] # remove the description and certainty cols bc they're long descriptions
-head(bd_fin2)
-nrow(bd_fin2)
-lapply(bd_fin2, class)
-setwd(paste0(wdmain, "data/"))
-write.csv(bd_fin2, "BD_allFinanceFlows_simplified.csv", row.names = F)
+# upon first run, read data on ALL volumes of financial flows to biodiversity
+# bd_fin <- read.csv(paste0(wdmain, "data/BD_allFinanceFlows.csv")) # this data describes all kinds of financial flows for biodiversity finance
+#  clean this data:
+# head(bd_fin)
+# bd_fin2 <- bd_fin[,-c(11:12)] # remove the description and certainty cols bc they're long descriptions
+# head(bd_fin2)
+# nrow(bd_fin2)
+# lapply(bd_fin2, class)
+# setwd(paste0(wdmain, "data/"))
+# write.csv(bd_fin2, "BD_allFinanceFlows_simplified.csv", row.names = F)
 
 # explore
 bd_fin <- read.csv("BD_allFinanceFlows_simplified.csv", )
 head(bd_fin)
 # create subset for only positive flows
 pos_flow <- bd_fin[which(bd_fin$Categ_impact == "Positive"),]
-plot(pos_flow$Value_lowerLim) # i see an extreme outlier: stocks and bonds that have signed up to UN principles for responsible investment
-pos_flow[which(pos_flow$Value_lowerLim > 20000),] 
-plot(pos_flow$Value_lowerLim[which(pos_flow$Value_lowerLim < 1500)])
-unique(pos_flow$Categ_instrmnt) # 26 different instruments these flows are dispersed/employed!
+# plot(pos_flow$Value_lowerLim) # i see an extreme outlier: stocks and bonds that have signed up to UN principles for responsible investment
+# pos_flow[which(pos_flow$Value_lowerLim > 20000),] 
+# plot(pos_flow$Value_lowerLim[which(pos_flow$Value_lowerLim < 1500)])
+# unique(pos_flow$Categ_instrmnt) # 26 different instruments these flows are dispersed/employed!
 # create subset for only negative flows
 neg_flow <- bd_fin[which(bd_fin$Categ_impact == "Negative"),]
-plot(neg_flow$Value_lowerLim)
-unique(neg_flow$Categ_instrmnt) # only 3 different instruments
+# plot(neg_flow$Value_lowerLim)
+# unique(neg_flow$Categ_instrmnt) # only 3 different instruments
 
 # note, clearly there is a possibility of double counting financial flows, bc diff sources estimate similar, global figures
 # it is important to take care of which figures are used and reported from this
@@ -221,8 +220,8 @@ posWithinNegFlows <- full_join(neg_flow_clean, pos_flow3)
 posWithinNegFlows$mValue <- rowMeans(cbind(posWithinNegFlows$Value_lowerLim, posWithinNegFlows$Value_upperLim))
 
 
-setwd("G:/My Drive/Projects/IPBES-Nexus/analyses/fin_flows/outputs/")
-png(filename = "summaryAllFlows.png", width = 1200, height = 600, units = "px", bg = "white")
+setwd("G:/My Drive/Projects/IPBES-Nexus/analyses/finFlows_nexus/outputs/")
+png(filename = "summaryAllFlows.png", width = 1100, height = 650, units = "px", bg = "white")
 
 treemap(posWithinNegFlows, 
         index = c("Categ_impact", "Categ_instrmnt", "label"), # the order determines groups and subgroups
@@ -230,14 +229,15 @@ treemap(posWithinNegFlows,
         type = "index",
         bg.labels=c("transparent"),
         align.labels=list(
-          c("center", "top"),
+          c("left", "top"),
           c("left", "top"), 
           c("right", "bottom")),
-        #ymod.labels = c(0,-.28,0),
-        # position.legend = "right",
-        # reverse.legend = T,
-        fontsize.labels = c(22,18,12),
-        fontsize.title = 28,
+        ymod.labels = c(5,0,0),
+        position.legend = "bottom",
+        
+        fontsize.labels = c(28,22,16),
+        fontsize.title = 33,
+        fontsize.legend = 22,
         palette = c("#E5C494", "#66C2A5"),
         overlap.labels=0.5,   # number between 0 and 1 that determines the tolerance of the overlap between labels. 0 means that labels of lower levels are not printed if higher level labels overlap, 1  means that labels are always printed. In-between values, for instance the default value .5, means that lower level labels are printed if other labels do not overlap with more than .5  times their area size.
         title = "Scale of annual nature-negative and nature-positive financing (Billions USD)")
@@ -250,8 +250,8 @@ dev.off()
 pos_flow2
 
 # potential treemap
-setwd("G:/My Drive/Projects/IPBES-Nexus/analyses/fin_flows/outputs/")
-png(filename = "posFlows.png", width = 1000, height = 600, units = "px", bg = "white")
+setwd("G:/My Drive/Projects/IPBES-Nexus/analyses/finFlows_nexus/outputs/")
+png(filename = "posFlows.png", width = 1100, height = 650, units = "px", bg = "white")
 
 treemap(pos_flow2,
         index = c("Sector", "label"),
@@ -264,11 +264,15 @@ treemap(pos_flow2,
         ),  
         # position.legend = "right",
         # reverse.legend = T,
-        fontsize.labels = c(18,12),
+        fontsize.labels = c(22,16),
         fontsize.title = 28,
         palette = "#66C2A5",
         overlap.labels=0.5,   # number between 0 and 1 that determines the tolerance of the overlap between labels. 0 means that labels of lower levels are not printed if higher level labels overlap, 1  means that labels are always printed. In-between values, for instance the default value .5, means that lower level labels are printed if other labels do not overlap with more than .5  times their area size.
         title = "Annual public and private financial support for nature-positive activities (Billions USD)")
 
 dev.off()
+
+pos_flow2 %>%
+  group_by(Sector) %>%
+  summarize(sums = sum(Value_lowerLim), sumsup = sum(Value_upperLim))
 
