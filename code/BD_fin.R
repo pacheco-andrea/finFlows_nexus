@@ -1,20 +1,22 @@
-########################################################################################################################
-###################################### Global biodiversity finance flows and the nexus #################################
-########################################################################################################################
+#######################################################################################
+################### Global biodiversity finance flows and the nexus ###################
+######################################################################################
 
 # Part of work for Chapter 6 of the IPBES Nexus Assessment
 # Author: Andrea Pacheco
 # first run: Sept 28th 2023
 # last run: Oct 5th 2023
 
-# description: this script reads raw data gathered from differen academic and gray lit sources on the global financial flows directed to biodiversity,
-# and how these flows are connected to different nexus elements
-# this script cleans up that data and has the main output of mapping the volumes of nature negative and positive flows via Treemaps
-# (future scripts will deal with the mappinf of the nexiness of flows)
+# description: this script reads raw data gathered from different academic and gray lit sources 
+# on the global financial flows directed to biodiversity, and how these flows are connected to different nexus elements.
+# this script cleans up that data and has the main output of mapping the volumes of nature negative and positive flows using treemaps
+# (future scripts will deal with the mapping of the nexiness of flows)
+
 # outputs: clean(er) bd financing table, treemap of negative flows, treemap of all flows, treemap of positive flows
 
-# pending issues from this script 
-# the raw monetary values need to be standardized/deflated to one year of reference. I would advocate for 2024 numbers 
+# pending issues from this script: 
+# the raw monetary values need to be standardized/deflated to one year of reference. I would advocate for 2024 numbers. 
+
 
 # libraries
 library(dplyr)
@@ -38,8 +40,8 @@ wdmain <- "G:/My Drive/Projects/IPBES-Nexus/analyses/finFlows_nexus/"
 # setwd(paste0(wdmain, "data/"))
 # write.csv(bd_fin2, "BD_allFinanceFlows_simplified.csv", row.names = F)
 
-# explore
-bd_fin <- read.csv("BD_allFinanceFlows_simplified.csv", )
+# explore ranges of fin volumes
+bd_fin <- read.csv(paste0(wdmain, "data/BD_allFinanceFlows_simplified.csv"))
 head(bd_fin)
 # create subset for only positive flows
 pos_flow <- bd_fin[which(bd_fin$Categ_impact == "Positive"),]
@@ -57,8 +59,7 @@ neg_flow <- bd_fin[which(bd_fin$Categ_impact == "Negative"),]
 
 
 # test treemap of nature-negative flows ----
-# 
-# # start with the harmful flows
+
 # head(neg_flow[,1:9])
 # nrow(neg_flow)
 # # simple version with only state of nature 2022 estimates
@@ -130,12 +131,11 @@ neg_flow_clean
 
 # create mean value for plotting
 neg_flow_clean$mValue <- rowMeans(cbind(neg_flow_clean$Value_lowerLim, neg_flow_clean$Value_upperLim))
-# need to create a label that will allow me to paste the range in values, but only when there is a range
+# need to create a label that will allow me to paste the range in values, but specify if condition for only when there is a range
 neg_flow_clean$label <- NA
-makeLableWithLims <- function(table, labelName){
+makeLabelWithLims <- function(table, labelName){
   n <- grep(labelName, colnames(table))
   labels <- c()
-  
   for(i in 1:nrow(table))
   {
     labels[i] <- paste0(table[i,n],
@@ -146,7 +146,7 @@ makeLableWithLims <- function(table, labelName){
   }
   return(labels)
 }
-neg_flow_clean$label <- makeLableWithLims(neg_flow_clean, "Sector_econAct")
+neg_flow_clean$label <- makeLabelWithLims(neg_flow_clean, "Sector_econAct")
 
 # write out treemap
 setwd("G:/My Drive/Projects/IPBES-Nexus/analyses/fin_flows/outputs/")
@@ -181,10 +181,10 @@ pos_flow2 <- pos_flow2[which(pos_flow2$Sector_econAct != "marine"),] # need to e
 # create mean value for plotting 
 pos_flow2$mValue <-  rowMeans(cbind(pos_flow2$Value_lowerLim, pos_flow2$Value_upperLim))
 # create column for labeling
-# in this case, i want a composite label of the cateogry of instrument and of the sector of econ activity
+# in this case, i want a composite label of the category of instrument and of the sector of econ activity
 pos_flow2$Categ_instrmnt <- gsub("Domestic budgets", "Domestic budgets:", pos_flow2$Categ_instrmnt)
 pos_flow2$categ3 <- paste(pos_flow2$Categ_instrmnt, pos_flow2$Sector_econAct)
-pos_flow2$label <- makeLableWithLims(pos_flow2, "categ3")
+pos_flow2$label <- makeLabelWithLims(pos_flow2, "categ3")
 # visualize
 treemap(pos_flow2, 
         index = c("Sector", "label"), # the order determines groups and subgroups
@@ -202,19 +202,22 @@ treemap(pos_flow2,
         title = "Annual public and private financial support for nature-positive activities (Billions USD)")
 
 # because positive flows are so much smaller than negative flows, 
-# plotting the small details of the different instruments via which private flows are dispersed doesn't make sense as they wont appear in the treemap
+# plotting the small details of the different instruments via which private flows are dispersed doesn't make sense 
+# these details will be unreadable in the treemap
 # instead, i chose to create a simplified row/observation for positive flows to add to the negative flow table
 # this should illustrate the scale of financing of positive compared to negative
+
+# join positive and negative flows:
 neg_flow_clean
 colnames(neg_flow_clean) == colnames(pos_flow2[,-c(17)])
 pos_flow3 <- pos_flow2 %>%
   group_by(Category, Categ_impact, Sector, Unit..USD.YY., NormalizedValue_YY, Source) %>%
   summarize(Value_lowerLim = sum(Value_lowerLim),
             Value_upperLim = sum(Value_upperLim)) 
-# add label column at this point
-pos_flow3$label <- makeLableWithLims(pos_flow3, "Sector")
+# need to add label column at this point
+pos_flow3$label <- makeLabelWithLims(pos_flow3, "Sector")
 
-# join into full dataset of flows
+# join into table of all flows
 posWithinNegFlows <- full_join(neg_flow_clean, pos_flow3)
 # recalculate mean values to include 2 new ones
 posWithinNegFlows$mValue <- rowMeans(cbind(posWithinNegFlows$Value_lowerLim, posWithinNegFlows$Value_upperLim))
@@ -234,19 +237,19 @@ treemap(posWithinNegFlows,
           c("right", "bottom")),
         ymod.labels = c(5,0,0),
         position.legend = "bottom",
-        
+        border.col = "white",
+        border.lwds = c(1,.5,.05),
         fontsize.labels = c(28,22,16),
+        fontcolor.labels ="white",
         fontsize.title = 33,
         fontsize.legend = 22,
-        palette = c("#E5C494", "#66C2A5"),
-        overlap.labels=0.5,   # number between 0 and 1 that determines the tolerance of the overlap between labels. 0 means that labels of lower levels are not printed if higher level labels overlap, 1  means that labels are always printed. In-between values, for instance the default value .5, means that lower level labels are printed if other labels do not overlap with more than .5  times their area size.
+        palette = c("#D9AA80", "#196C71"),
+        overlap.labels=0.5,   
         title = "Scale of annual nature-negative and nature-positive financing (Billions USD)")
 
 dev.off()
 
 # positive flows ----
-# i don't think it makes sense to map the economic activity sector for positive flows - it makes more sense to map the instruments
-# or does it?
 pos_flow2
 
 # potential treemap
@@ -264,14 +267,18 @@ treemap(pos_flow2,
         ),  
         # position.legend = "right",
         # reverse.legend = T,
-        fontsize.labels = c(22,16),
+        border.col = "white",
+        border.lwds = c(1,.5,.05),
+        fontsize.labels = c(28,20,18),
+        fontcolor.labels ="white",
         fontsize.title = 28,
-        palette = "#66C2A5",
+        palette = "#4A928F",
         overlap.labels=0.5,   # number between 0 and 1 that determines the tolerance of the overlap between labels. 0 means that labels of lower levels are not printed if higher level labels overlap, 1  means that labels are always printed. In-between values, for instance the default value .5, means that lower level labels are printed if other labels do not overlap with more than .5  times their area size.
         title = "Annual public and private financial support for nature-positive activities (Billions USD)")
 
 dev.off()
 
+# quick calculation of fig
 pos_flow2 %>%
   group_by(Sector) %>%
   summarize(sums = sum(Value_lowerLim), sumsup = sum(Value_upperLim))
