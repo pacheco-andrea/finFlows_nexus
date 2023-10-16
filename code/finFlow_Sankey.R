@@ -54,17 +54,8 @@ colnames(sum2) <- c("source", "target", "value")
 
 myData <- rbind(sum1, sum2)
 myData <- myData[which(!is.na(myData$target)),]
-
-# # pivot table to create only two columns of the source and the target
-# sum1 <- testData %>%
-#   pivot_longer(cols = c(Sector, HowNexusy1),
-#                values_to = "nexiness",
-#                values_drop_na = T)
-# 
-# testData <- testData[,c(1,4,2)]
-# colnames(testData) <- c("source", "target", "value")
-# head(testData)
 testData <- myData
+
 # create nodes
 myNodes <- data.frame(name=c(as.character(testData$source), as.character(testData$target)) %>% unique())
 # With networkD3, connection must be provided using id, not using real name like in the links dataframe.. So we need to reformat it.
