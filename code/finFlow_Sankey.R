@@ -47,7 +47,6 @@ head(testData)
 sum1 <- testData %>%  group_by(Sector, HowNexusy1) %>%  summarise(mValue = sum(mValue)) # summarize total values per sector and biodiv (source 1 - target 1)
 # so, how much private, public, (and mixed) goes where?
 colnames(sum1) <- c("source", "target", "value")
-
 # sum 2: how much from biodiversity goes also to other nexus elements
 sum2 <- testData %>% group_by(HowNexusy1, HowNexusy2) %>% summarise(mValue = sum(mValue))
 colnames(sum2) <- c("source", "target", "value")

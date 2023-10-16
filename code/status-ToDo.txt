@@ -1,3 +1,0 @@
-# things to clean up in the data:
-- DONE. the nexus categories
-- DONE. the description which is driving me crazy - which means - adding ID columns
