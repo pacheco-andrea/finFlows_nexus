@@ -24,8 +24,8 @@ wdmain <- "G:/My Drive/Projects/IPBES-Nexus/analyses/finFlows_nexus/"
 data <- read.csv(paste0(wdmain, "data/BD_allFinanceFlows_simplified.csv"))
 
 # nexiness of positive flows ----
-pos_data <- data[which(data$Categ_impact == "Positive"),]
-nrow(pos_data)
+pos_flow <- data[which(data$Categ_impact == "Positive"),]
+nrow(pos_flow)
 # create simplified version for now:
 pos_flow2 <- pos_flow[which(pos_flow$Source == "UNEP 2022 (State of Finance)"),]
 pos_flow2 <- pos_flow2[which(pos_flow2$Sector_econAct != "total"),]
@@ -71,13 +71,20 @@ myNodes <- data.frame(name=c(as.character(testData$source), as.character(testDat
 testData$IDsource = match(testData$source, myNodes$name)-1
 testData$IDtarget = match(testData$target, myNodes$name)-1
 
+# prepare colour scale
+colexample <- 'd3.scaleOrdinal() .domain(["group_A", "group_B","group_C", "group_D", "group_E", "group_F", "group_G", "group_H"]) 
+.range(["blue", "blue" , "blue", "red", "red", "yellow", "purple", "purple"])'
+
+ipbesCols = 'd3.scaleOrdinal() .domain(["Private", "Public", "biodiversity", "unknown", "climate", "food", "food_water", "water"])
+.range(["#333333","#333333","#C6D68A","#ACABA4", "#BAB0C9","#B65719","#D5B41F","#4A928F"])' # manually edit here according to groups
+
+
 testSankey <- sankeyNetwork(Links = testData, Nodes = myNodes,
                             Source = "IDsource", Target = "IDtarget",
                             Value = "value", NodeID = "name", 
                             units = "USD Billions", sinksRight=FALSE, 
-                            colourScale=ColourScal, nodeWidth=40, fontSize=13, nodePadding=20)
-testSankey # the problem is that i wanted biodiversity to be in the middle, as a middle node which would then lead to also climate, and water, etc. 
-# and there is some double counting here: the 29B going to food and water is also going to biodiversity
+                            colourScale= ipbesCols, nodeWidth=40, fontSize=13, nodePadding=20)
+testSankey
 
 setwd("G:/My Drive/Projects/IPBES-Nexus/analyses/finFlows_nexus/outputs/")
 saveWidget(testSankey, file = "testSankey.html")
