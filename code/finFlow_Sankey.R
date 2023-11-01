@@ -73,7 +73,8 @@ testSankey <- sankeyNetwork(Links = testData, Nodes = myNodes,
                             Source = "IDsource", Target = "IDtarget",
                             Value = "value", NodeID = "name", 
                             units = "USD Billions", sinksRight=FALSE, 
-                            colourScale= ipbesCols, nodeWidth=40, fontSize=13, nodePadding=20)
+                            fontFamily = "sans-serif", fontSize=20,
+                            colourScale= ipbesCols, nodeWidth=40, nodePadding=20)
 testSankey
 
 setwd("G:/My Drive/Projects/IPBES-Nexus/analyses/finFlows_nexus/outputs/")
