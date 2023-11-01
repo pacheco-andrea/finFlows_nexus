@@ -9,3 +9,5 @@ This repository contains:
 - scripts for analyzing, plotting, and generally visualizing these financial flows:
   * BD_fin: plots treemaps of nature-positive, nature-negative, and mixed flows
   * finFlow_Sankey (_in progress_): plots Sankey network diagram(s) of the volumes of financing that are estimated to be flowing into biodiversity (and potentially other nexus elements)
+
+[Sankey diagram of financial flows](outputs/testSankey.html)
