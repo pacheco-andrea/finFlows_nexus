@@ -1,0 +1,5 @@
+# 2024.03
+
+- from the 2023 State of Nature for Finance it seems that UNEP isn't calculating nature-positive flows anymore?
+they say: "Nature-negative finance flows are not the negative equivalent of positive finance flows to NbS... the estimation of nature-negative flows from private sources considers sectors and activities with a negative impact on nature, not just those that are nature based."
+Hence, a net-finance flow to NbS is not estimated (which would be what I had as nature-positive in the past?)

@@ -4,18 +4,19 @@
 
 # Part of work for Chapter 6 of the IPBES Nexus Assessment
 # Author: Andrea Pacheco
-# first run: Sept 28th 2023
-# last run: Oct 5th 2023
+# first run: 28.09.2023
+# last run: 07.02.2023
 
-# description: this script reads raw data gathered from different academic and gray lit sources 
-# on the global financial flows directed to biodiversity, and how these flows are connected to different nexus elements.
-# this script cleans up that data and has the main output of mapping the volumes of nature negative and positive flows using treemaps
-# (future scripts will deal with the mapping of the nexiness of flows)
+# description: this script reads raw data that I gathered from different academic and gray lit sources 
+# on the global financial flows directed to biodiversity, 
+# and how these flows are connected to different nexus elements and cleans it.
 
-# outputs: clean(er) bd financing table, treemap of negative flows, treemap of all flows, treemap of positive flows
+# output: 
+# 1. visualization of the amount and scale of nature negative and positive flows using treemaps
+# 2. clean(er) bd financing table
 
-# pending issues from this script: 
-# the raw monetary values need to be standardized/deflated to one year of reference. I would advocate for 2024 numbers. 
+# pending issues: 
+# the raw monetary values need to be standardized/deflated to 2024
 
 
 # libraries
@@ -27,7 +28,7 @@ library(treemap)
 
 
 # set directories
-wdmain <- "G:/My Drive/Projects/IPBES-Nexus/analyses/finFlows_nexus/"
+wdmain <- "G:/My Drive/Projects/IPBES-Nexus/00_analyses/finFlows_nexus/"
 
 # upon first run, read data on ALL volumes of financial flows to biodiversity
 # bd_fin <- read.csv(paste0(wdmain, "data/BD_allFinanceFlows.csv")) # this data describes all kinds of financial flows for biodiversity finance
@@ -40,17 +41,21 @@ wdmain <- "G:/My Drive/Projects/IPBES-Nexus/analyses/finFlows_nexus/"
 # setwd(paste0(wdmain, "data/"))
 # write.csv(bd_fin2, "BD_allFinanceFlows_simplified.csv", row.names = F)
 
-# explore ranges of fin volumes
+# read clean(er) data to explore ranges of fin volumes
 bd_fin <- read.csv(paste0(wdmain, "data/BD_allFinanceFlows_simplified.csv"))
 head(bd_fin)
 # create subset for only positive flows
-pos_flow <- bd_fin[which(bd_fin$Categ_impact == "Positive"),]
+pos_flow <- bd_fin %>%
+  filter(Categ_impact == "Positive")
+
 # plot(pos_flow$Value_lowerLim) # i see an extreme outlier: stocks and bonds that have signed up to UN principles for responsible investment
 # pos_flow[which(pos_flow$Value_lowerLim > 20000),] 
 # plot(pos_flow$Value_lowerLim[which(pos_flow$Value_lowerLim < 1500)])
 # unique(pos_flow$Categ_instrmnt) # 26 different instruments these flows are dispersed/employed!
+
 # create subset for only negative flows
-neg_flow <- bd_fin[which(bd_fin$Categ_impact == "Negative"),]
+neg_flow <- bd_fin %>%
+  filter(Categ_impact == "Negative")
 # plot(neg_flow$Value_lowerLim)
 # unique(neg_flow$Categ_instrmnt) # only 3 different instruments
 
@@ -58,63 +63,33 @@ neg_flow <- bd_fin[which(bd_fin$Categ_impact == "Negative"),]
 # it is important to take care of which figures are used and reported from this
 
 
-# test treemap of nature-negative flows ----
-
-# head(neg_flow[,1:9])
-# nrow(neg_flow)
-# # simple version with only state of nature 2022 estimates
-# unique(neg_flow$Source)
-# neg_2022 <- neg_flow[which(neg_flow$Source == "UNEP 2022 (State of Finance)"),]
-# neg_2022
-# 
-# treemap(neg_2022, 
-#         index = "Sector_econAct", 
-#         vSize = "Value_lowerLim",
-#         type = "index",
-#         palette = "YlOrRd",
-#         title = "Public financial support for nature-negative activities (UNEP 2022)")
-# 
-# # join the label with the number in order to print the number with the label
-# neg_2022$label <- paste(neg_2022$Sector_econAct, paste0(neg_2022$Value_lowerLim, " B"), sep = "\n")
-# 
-# treemap(neg_2022, 
-#         index = "label", 
-#         vSize = "Value_lowerLim",
-#         type = "index",
-#         palette = "YlOrRd",
-#         title = "Annual, public financial support for nature-negative activities (USD Billions) (UNEP 2022)")
-# 
-# # write out to test size
-# setwd("G:/My Drive/Projects/IPBES-Nexus/analyses/fin_flows/outputs/")
-# png(filename = "testplot_subsidies_UNEP2022.png", width = 1000, height = 600, units = "px", bg = "transparent")
-# treemap(neg_2022, 
-#         index = "label", 
-#         vSize = "Value_lowerLim",
-#         type = "index",
-#         palette = "YlOrRd",
-#         title = "Annual, public financial support for nature-negative activities (USD Billions) (UNEP 2022)")
-# dev.off()
-
-
-# treemap scaled up to all nature-neg activities ----
+# treemap all nature-neg activities ----
 
 # there are three main categories of negative flows: private, illegal, and public
 
 # private flows: 
-# should only include portfolio earth calculations (see description of Dasgupta estimate in raw data table)
-neg_priv <- neg_flow[which(neg_flow$Source == "Portfolio Earth 2020" & neg_flow$Sector_econAct != "total"),] # remove total count to avoid double counting
+# filter for only portfolio earth calculations (see description of Dasgupta estimate in raw data table)
+neg_priv <- bd_fin %>%
+  filter(Categ_impact == "Negative", Source == "Portfolio Earth 2020", Sector_econAct != "total")
 # illegal flows:
 # should have the estimate which is all environmental crimes (not just illegal wildlife trade)
-neg_illeg <- neg_flow[which(neg_flow$Source == "OECD 2021, based on Nellemann et al., 2018"),] 
+
+neg_illeg <- bd_fin %>%
+  filter(Categ_impact == "Negative", Source == "OECD 2021, based on Nellemann et al., 2018")
+
 # public flows:
-neg_flow[which(neg_flow$Sector == "Public"),]
-# as seen here, these estimates vary a LOT, and they repeat across sectors of economic activity. this is how i defined priorities of what to map:
-# i know that i definitely want to keep the UNEP 2022 estimates because according to my review, these were the most recent and reliable estimates
-# agriculture: use the UNEP 2022 figs because lower and upper bounds are very similar to all other estimates from other sources. 
+bd_fin %>%
+  filter(Categ_impact == "Negative", Sector == "Public")
+# as seen here, these estimates vary a LOT, and they repeat across sectors of economic activity. 
+# Therefore, I prioritized which observations to report based on the following: 
+# 1. i know that i definitely want to keep the UNEP 2022 estimates because according to my review, these were the most recent and reliable estimates
+# 2. Speficially for agriculture: use the UNEP 2022 figs because lower and upper bounds are very similar to all other estimates from other sources. 
   # The only exception is the estimate from the OECD which estimates 800 billion. but this includes both ag and fossil fuels, so it makes sense to omit this aggregated number 
 # forestry: from 28-55 (Deutz) to 155 (koplow). the latter is not technically a subsidy from what i understood - it's just how they categorized illegal flows. Therefore, I choose to use Deutz.
-# (energy?) & fossil fuels: these are the most wild variations from 340-530B (UNEP 2022) to 5300B (Coady 2017) or 7000B (IMF). The latter two include estimates of the "harms" caused rather than direct costs. I think this would be better explained in the text than visualized.
-  # thus. i choose to use the UNEP 2022 estimates because they include lower and upper estimates (upper estimates which are similar to other estimates)
+# Speciically for the (energy?) & fossil fuels sector: 
+# these were the widest variations in estimates: from 340-530B (UNEP 2022) to 5300B (Coady 2017) or 7000B (IMF). 
+# The latter two include estimates of the "harms" caused rather than direct costs. I think this would be better explained in the text than visualized.
+  # Therefore, I prioritizsed using the UNEP 2022 estimates because they include lower and upper estimates (upper estimates which are similar to other estimates)
 # I keep estimates for construction, water, and transport: as only the Koplow study estimated these. 
 
 # build table accordingly to these priorities:
@@ -123,6 +98,9 @@ b <- neg_flow[which(neg_flow$Sector_econAct == "construction" | neg_flow$Sector_
 c <- neg_flow[which(neg_flow$Sector == "Public" & neg_flow$Sector_econAct == "forestry" & neg_flow$Source == "Deutz 2020"),]
 neg_pub <- rbind(a,b,c)
 nrow(neg_pub)
+
+# neg_pub <- bd_fin %%
+#   filter(Sector == "Public", )
 
 # table with all negative flows
 neg_flow_clean <- rbind(neg_priv, neg_pub, neg_illeg)
@@ -149,8 +127,8 @@ makeLabelWithLims <- function(table, labelName){
 neg_flow_clean$label <- makeLabelWithLims(neg_flow_clean, "Sector_econAct")
 
 # write out treemap
-setwd("G:/My Drive/Projects/IPBES-Nexus/analyses/fin_flows/outputs/")
-png(filename = "negFlows.png", width = 1000, height = 600, units = "px", bg = "white")
+# setwd("G:/My Drive/Projects/IPBES-Nexus/analyses/fin_flows/outputs/")
+# png(filename = "negFlows.png", width = 1000, height = 600, units = "px", bg = "white")
 treemap(neg_flow_clean, 
         index = c("Categ_instrmnt", "label"), # the order determines groups and subgroups
         vSize = "mValue",
@@ -167,7 +145,7 @@ treemap(neg_flow_clean,
         palette = "YlOrRd",
         overlap.labels=0.5,   # number between 0 and 1 that determines the tolerance of the overlap between labels. 0 means that labels of lower levels are not printed if higher level labels overlap, 1  means that labels are always printed. In-between values, for instance the default value .5, means that lower level labels are printed if other labels do not overlap with more than .5  times their area size.
         title = "Annual public and private financial support for nature-negative activities (Billions USD)")
-dev.off()
+# dev.off()
 
 
 # treemap scaled up for all financial flows ----
@@ -223,11 +201,11 @@ posWithinNegFlows <- full_join(neg_flow_clean, pos_flow3)
 posWithinNegFlows$mValue <- rowMeans(cbind(posWithinNegFlows$Value_lowerLim, posWithinNegFlows$Value_upperLim))
 
 
-setwd("G:/My Drive/Projects/IPBES-Nexus/analyses/finFlows_nexus/outputs/")
+setwd("G:/My Drive/Projects/IPBES-Nexus/00_analyses/finFlows_nexus/outputs/")
 png(filename = "summaryAllFlows.png", width = 1100, height = 650, units = "px", bg = "white")
 
 treemap(posWithinNegFlows, 
-        index = c("Categ_impact", "Categ_instrmnt", "label"), # the order determines groups and subgroups
+        index = c( "Sector", "Categ_impact", "Categ_instrmnt", "label"), # the order determines groups and subgroups
         vSize = "mValue",
         type = "index",
         bg.labels=c("transparent"),
@@ -243,7 +221,8 @@ treemap(posWithinNegFlows,
         fontcolor.labels ="white",
         fontsize.title = 33,
         fontsize.legend = 22,
-        palette = c("#D9AA80", "#196C71"),
+        # palette = c("#D9AA80", "#196C71"),
+        palette = c("#B65719", "#4A928F", "#C6D68A", "#4D2D71", "#696B5F", "#FFFFFF"),
         overlap.labels=0.5,   
         title = "Scale of annual nature-negative and nature-positive financing (Billions USD)")
 
@@ -253,7 +232,7 @@ dev.off()
 pos_flow2
 
 # potential treemap
-setwd("G:/My Drive/Projects/IPBES-Nexus/analyses/finFlows_nexus/outputs/")
+setwd("G:/My Drive/Projects/IPBES-Nexus/00_analyses/finFlows_nexus/outputs/")
 png(filename = "posFlows.png", width = 1100, height = 650, units = "px", bg = "white")
 
 treemap(pos_flow2,
@@ -272,7 +251,7 @@ treemap(pos_flow2,
         fontsize.labels = c(28,20,18),
         fontcolor.labels ="white",
         fontsize.title = 28,
-        palette = "#4A928F",
+        palette = c("#C6D68A", "#4A928F"),
         overlap.labels=0.5,   # number between 0 and 1 that determines the tolerance of the overlap between labels. 0 means that labels of lower levels are not printed if higher level labels overlap, 1  means that labels are always printed. In-between values, for instance the default value .5, means that lower level labels are printed if other labels do not overlap with more than .5  times their area size.
         title = "Annual public and private financial support for nature-positive activities (Billions USD)")
 
@@ -281,5 +260,5 @@ dev.off()
 # quick calculation of fig
 pos_flow2 %>%
   group_by(Sector) %>%
-  summarize(sums = sum(Value_lowerLim), sumsup = sum(Value_upperLim))
+  summarize(sumsLower = sum(Value_lowerLim), sumsUpper = sum(Value_upperLim))
 

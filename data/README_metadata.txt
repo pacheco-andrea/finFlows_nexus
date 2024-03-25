@@ -27,4 +27,12 @@ Categ_gap: refers to if the estimate is the total (total) amount needed to fulfi
 Categ_temp: whether the estimate was for current or future needs
 
 
+### update Feb 2024
+I'm trying to (pragmatically) think through what needs to be done -
+the latest State of Finance for Nature essentially does a giant treemap, as a summary of the report at the beginning. 
+What are our options?
+- replicate
+- expand
+- nexify-it - but how?
 
+1. document the data they've added - which will be of use in the sankey diagram as well
