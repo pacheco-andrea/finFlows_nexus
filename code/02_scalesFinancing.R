@@ -1,11 +1,9 @@
-#######################################################################################
-################### Global biodiversity finance flows and the nexus ###################
-######################################################################################
+#### Global biodiversity finance flows and the nexus ####
 
 # Part of work for Chapter 6 of the IPBES Nexus Assessment
 # Author: Andrea Pacheco
 # first run: 28.09.2023
-# last run: 07.02.2023
+# last run: 25.03.2024
 
 # description: this script reads raw data that I gathered from different academic and gray lit sources 
 # on the global financial flows directed to biodiversity, 
@@ -27,45 +25,23 @@ library(ggplot2)
 library(treemap)
 
 
+
 # set directories
 wdmain <- "G:/My Drive/Projects/IPBES-Nexus/00_analyses/finFlows_nexus/"
-
-# upon first run, read data on ALL volumes of financial flows to biodiversity
-# bd_fin <- read.csv(paste0(wdmain, "data/BD_allFinanceFlows.csv")) # this data describes all kinds of financial flows for biodiversity finance
-#  clean this data:
-# head(bd_fin)
-# bd_fin2 <- bd_fin[,-c(11:12)] # remove the description and certainty cols bc they're long descriptions
-# head(bd_fin2)
-# nrow(bd_fin2)
-# lapply(bd_fin2, class)
-# setwd(paste0(wdmain, "data/"))
-# write.csv(bd_fin2, "BD_allFinanceFlows_simplified.csv", row.names = F)
 
 # read clean(er) data to explore ranges of fin volumes
 bd_fin <- read.csv(paste0(wdmain, "data/BD_allFinanceFlows_simplified.csv"))
 head(bd_fin)
-# create subset for only positive flows
-pos_flow <- bd_fin %>%
-  filter(Categ_impact == "Positive")
 
-# plot(pos_flow$Value_lowerLim) # i see an extreme outlier: stocks and bonds that have signed up to UN principles for responsible investment
-# pos_flow[which(pos_flow$Value_lowerLim > 20000),] 
-# plot(pos_flow$Value_lowerLim[which(pos_flow$Value_lowerLim < 1500)])
-# unique(pos_flow$Categ_instrmnt) # 26 different instruments these flows are dispersed/employed!
-
-# create subset for only negative flows
-neg_flow <- bd_fin %>%
-  filter(Categ_impact == "Negative")
-# plot(neg_flow$Value_lowerLim)
-# unique(neg_flow$Categ_instrmnt) # only 3 different instruments
-
-# note, clearly there is a possibility of double counting financial flows, bc diff sources estimate similar, global figures
-# it is important to take care of which figures are used and reported from this
-
-
-# treemap all nature-neg activities ----
+# treemap of all nature-neg activities ----
 
 # there are three main categories of negative flows: private, illegal, and public
+neg_flows <- bd_fin %>% filter(Categ_impact == "Negative")
+unique(neg_flows$Sector)
+neg_flows <- select(neg_flows, c("id", "Sector", "Categ_instrmnt", "Sector_econAct", "Value_lowerLim", "Value_upperLim",
+                                 "Unit..USD.YY.", "YearData", "NormalizedValue_YY", "HowNexusy", "HowNexusy1", "Source"))
+neg_flows_total <- neg_flows %>% filter(str_to_lower(Sector_econAct) == "total")
+
 
 # private flows: 
 # filter for only portfolio earth calculations (see description of Dasgupta estimate in raw data table)
@@ -73,17 +49,16 @@ neg_priv <- bd_fin %>%
   filter(Categ_impact == "Negative", Source == "Portfolio Earth 2020", Sector_econAct != "total")
 # illegal flows:
 # should have the estimate which is all environmental crimes (not just illegal wildlife trade)
-
 neg_illeg <- bd_fin %>%
   filter(Categ_impact == "Negative", Source == "OECD 2021, based on Nellemann et al., 2018")
-
 # public flows:
-bd_fin %>%
+test <- bd_fin %>%
   filter(Categ_impact == "Negative", Sector == "Public")
+plot(test$Value_upperLim)
 # as seen here, these estimates vary a LOT, and they repeat across sectors of economic activity. 
 # Therefore, I prioritized which observations to report based on the following: 
-# 1. i know that i definitely want to keep the UNEP 2022 estimates because according to my review, these were the most recent and reliable estimates
-# 2. Speficially for agriculture: use the UNEP 2022 figs because lower and upper bounds are very similar to all other estimates from other sources. 
+# 1. I know that i definitely want to keep the UNEP 2022 estimates because according to my review, these were the most recent and reliable estimates
+# 2. Specifically for agriculture: use the UNEP 2022 figs because lower and upper bounds are very similar to all other estimates from other sources. 
   # The only exception is the estimate from the OECD which estimates 800 billion. but this includes both ag and fossil fuels, so it makes sense to omit this aggregated number 
 # forestry: from 28-55 (Deutz) to 155 (koplow). the latter is not technically a subsidy from what i understood - it's just how they categorized illegal flows. Therefore, I choose to use Deutz.
 # Speciically for the (energy?) & fossil fuels sector: 
@@ -92,6 +67,8 @@ bd_fin %>%
   # Therefore, I prioritizsed using the UNEP 2022 estimates because they include lower and upper estimates (upper estimates which are similar to other estimates)
 # I keep estimates for construction, water, and transport: as only the Koplow study estimated these. 
 
+# can i make a smarter prioritization that 1) account for 2023, which are many repeated numbers, but 2) also visualizes the wide range of estimates?
+
 # build table accordingly to these priorities:
 a <- neg_flow[which(neg_flow$Sector == "Public" & neg_flow$Source == "UNEP 2022 (State of Finance)"),]
 b <- neg_flow[which(neg_flow$Sector_econAct == "construction" | neg_flow$Sector_econAct == "water"| neg_flow$Sector_econAct == "transport" & neg_flow$Sector == "Public"),]
@@ -99,17 +76,19 @@ c <- neg_flow[which(neg_flow$Sector == "Public" & neg_flow$Sector_econAct == "fo
 neg_pub <- rbind(a,b,c)
 nrow(neg_pub)
 
-# neg_pub <- bd_fin %%
-#   filter(Sector == "Public", )
+test2 <- bd_fin %>%
+  filter(Categ_impact == "Negative", Sector == "Public", Sector_econAct == c(""))
 
-# table with all negative flows
+
+
+# make table with all negative flows
 neg_flow_clean <- rbind(neg_priv, neg_pub, neg_illeg)
 nrow(neg_flow_clean)
 neg_flow_clean
 
 # create mean value for plotting
 neg_flow_clean$mValue <- rowMeans(cbind(neg_flow_clean$Value_lowerLim, neg_flow_clean$Value_upperLim))
-# need to create a label that will allow me to paste the range in values, but specify if condition for only when there is a range
+# create a label that will allow me to paste the range in values, but specify if condition for only when there is a range
 neg_flow_clean$label <- NA
 makeLabelWithLims <- function(table, labelName){
   n <- grep(labelName, colnames(table))
