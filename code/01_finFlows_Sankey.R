@@ -33,13 +33,12 @@ wdmain <- "G:/My Drive/Projects/IPBES-Nexus/00_analyses/finFlows_nexus/"
 bd_fin <- read.csv(paste0(wdmain, "data/BD_allFinanceFlows.csv")) # this data describes all kinds of financial flows for biodiversity finance
 # clean this data:
 head(bd_fin)
-bd_fin2 <- select(bd_fin, -c("Descr.Method"))# remove the description col for ease of viewing the data in R
+bd_fin2 <- select(bd_fin, -c("Descr.Method", "CertaintyDetail", "SourceDetail"))# remove the description col for ease of viewing the data in R
 # standardize the case of certain variables
 unique(bd_fin2$Sector_econAct)
-
 head(bd_fin2)
 nrow(bd_fin2) == length(unique(bd_fin$id))
-lapply(bd_fin2, class)
+unlist(lapply(bd_fin2, class))
 setwd(paste0(wdmain, "data/"))
 write.csv(bd_fin2, "BD_allFinanceFlows_simplified.csv", row.names = F)
 
