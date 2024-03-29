@@ -34,14 +34,23 @@ sankeyNetwork(Links = data_long, Nodes = nodes,
 # energy flows example:
 # Load energy projection data
 URL <- "https://cdn.rawgit.com/christophergandrud/networkD3/master/JSONdata/energy.json"
-Energy <- jsonlite::fromJSON(URL)
+energy <- jsonlite::fromJSON(URL)
 
 
 # Now we have 2 data frames: a 'links' data frame with 3 columns (from, to, value), and a 'nodes' data frame that gives the name of each node.
-head( Energy$links ) # 68 rows of links
-head( Energy$nodes ) # 48 nodes
+head( energy$links ) # 68 rows of links
+head( energy$nodes ) # 48 nodes
 
 # Thus we can plot it
-sankeyNetwork(Links = Energy$links, Nodes = Energy$nodes, Source = "source", # but i dont understand how the middle categories end up in the middle?
+sankeyNetwork(Links = energy$links, Nodes = energy$nodes, Source = "source", # but i dont understand how the middle categories end up in the middle?
               Target = "target", Value = "value", NodeID = "name",
               units = "TWh", fontSize = 12, nodeWidth = 30)
+
+
+# Colour links
+energy$links$energy_type <- sub(' .*', '',
+                                energy$nodes[energy$links$source + 1, 'name'])
+
+sankeyNetwork(Links = energy$links, Nodes = energy$nodes, Source = 'source',
+              Target = 'target', Value = 'value', NodeID = 'name',
+              LinkGroup = 'energy_type', NodeGroup = NULL)
