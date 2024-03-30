@@ -137,32 +137,92 @@ saveWidget(posFlowSankey, file = "BDFin_positiveFlows.html")
 
 
 # What can i do to represent the other data that is NOT UNEP 2023 SFN?? ----
-# these data also represent global bd finance flows 
+
+# get all data that is positive bd finance flows 
 pos_data_older <- data %>% filter(Categ_impact == "Positive") %>%
   select(-c("id", "Category", "Categ_impact", "Unit..USD.YY.", "Certainty"))
+# create mean column
 pos_data_older$meanUSD_Y <- rowMeans(cbind(pos_data_older$Value_lowerLim, pos_data_older$Value_upperLim), na.rm = T)
-
+# view the data that should be summarizing these
 summData <- unique(rbind(pos_data_older[grep("total", pos_data_older$Sector_econAct),], pos_data_older %>% filter(Sector == "Mixed")))
-
+summData
 
 # make barplots of how much bd financing reported per source
 ggplot(summData, aes(x = Sector, y = meanUSD_Y)) +
   geom_bar(stat = "identity") +
   labs(title = "my title", x = "sector", y = "USD Billions annually") +
   facet_wrap(~ Source)
-# reed 2020 source can be excluded from these summary sources
-unique(summData$Source)
-# what is going on with the 2021 SFN??
-summData %>% filter(Source == "UNEP 2021 SFN") # it's the almost 600B that goes to climate finance
+# this is all misleading bc there's lots of double counting here
+# but reed 2020 source can be excluded from these summary sources
+# particularly because when i check the details these data are from 2009-2013, so older than 10 years
+# also, what is going on with the 2021 SFN??
+summData %>% filter(Source == "UNEP 2021 SFN") # it's the almost 600B that goes to climate finance + private climate data
 
+# visualize ALL the positive flows rows: ----
 
-# all the positive flows
-ggplot(pos_data_older, aes(x = Sector, y = meanUSD_Y)) +
+# version 1:
+pos_data_older %>% 
+  filter(Source != "Reed 2020", 
+         Source != "Bass, Dithrich, and Mudaliar, 2018 (GIIN)",
+         Source != "Busch 2021",
+         Source != "CPI 2018",
+         Source != "Gallo-Caijao 2018") %>%
+  ggplot(aes(x = Sector, y = meanUSD_Y)) +
   geom_bar(stat = "identity") +
   labs(title = "Making sense of financial flows by source", x = "sector", y = "USD Billions annually") +
-  coord_cartesian(y = c(0, 800))+
+  coord_cartesian(y = c(0, 800)) + # bc otherwise finance watch & Dasgupta take over the y axis
   facet_wrap(~ Source)
 
-# get the total estimates for UNEP reports first
+# fix the data that's double counting things: 
+
+# UNEP SFNs
+
+# UNEP 2021 ----
 unepData <- pos_data_older[grep("UNEP", pos_data_older$Source),]
-unepData %>% filter(Source == "UNEP 2021 SFN")
+# sum the values except for the mixed
+unepData2021 <- unepData %>% 
+  filter(Source == "UNEP 2021 SFN") %>% 
+  filter(Sector != "Mixed") %>%
+  filter(Sector_econAct != "total") %>% # don't double count the sum
+  filter(Sector_econAct != "climate") %>% # don't count this bc for some reason they didn't include climate-specific in their accounting of the SFN 2021
+  group_by(Sector) %>%
+  summarize(totalUSD = sum(meanUSD_Y))
+unepData2021 # yes - this is the correct value that sums up to 133B
+unepData2021$year <- 2021
+unepData2021
+# version of unep 2021 which includes the funding that goes specifically to climate
+unepData2021_climateIncl <- unepData %>%  filter(Source == "UNEP 2021 SFN") %>% filter(Sector_econAct != "total")
+unepData2021_climateIncl <- unepData2021_climateIncl[-which(unepData2021_climateIncl$Sector == "Private" & unepData2021_climateIncl$Sector_econAct == "climate"),]
+unepData2021_climateIncl %>%
+  group_by(Sector) %>%
+  summarize(totalUSD = sum(meanUSD_Y))
+
+# I went digging to find out more about this climate data bc of that reviewer comment:
+# in sum - unep 2021 included CPI data on climate financing - but it didn't for 2022 nor 2023
+# i've looked up the newest CPI 2023 and the climate financing in total is over 1 trillion now 
+# this is great to climate, but IMO it would drastically change the figure and drive the conversation elsewhere
+# hence - I have decided to deal with this in the text, rather than the main sankey figure
+
+
+#  UNEP 2022 ----
+# these are the only data for which we have actual ranges i was able to extract from the report
+# here, can see that the total sums should be 82.4 - 227 (mean = 154.7)
+
+unepData2022 <- unepData %>% 
+  filter(Source == "UNEP 2022 SFN") %>%
+  filter(Sector_econAct != "total") %>%
+  # exclude the marine row bc this was just highlighted apart, but is implicitly included in accounting across categories
+  filter(Sector_econAct != "marine") %>%
+  group_by(Sector) %>%
+  summarize(totalUSD = sum(meanUSD_Y), totalUSD_L = sum(Value_lowerLim), totalUSD_U = sum(Value_upperLim))
+unepData2022$year <- 2022
+unepData2022
+
+# UNEP 2023 ----
+# should sum to 200
+unepData %>% 
+  filter(Source == "UNEP 2023 SFN") %>%
+  filter(Sector != "Mixed") %>%
+  filter(Sector_econAct != "total") %>%
+  group_by(Sector) %>%
+  summarize(totalUSD = sum(meanUSD_Y))
