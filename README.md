@@ -11,4 +11,4 @@ This repository contains:
   * BD_fin: plots treemaps of nature-positive, nature-negative, and mixed flows
   * finFlow_Sankey: plots Sankey network diagram(s) of the volumes of financing that are estimated to be flowing into NbS (and how these connect to nexus elements) - based on UNEP's 2023 report State of Finance for Nature
 
-[Sankey diagram of financial flows](BDFin_positiveFlows/.html)
+[Sankey diagram of financial flows](outputs/BDFin_positiveFlows.html)
