@@ -114,11 +114,13 @@ ipbesCols = 'd3.scaleOrdinal()
 .domain(["Private","Public","Carbon-markets","Domestic-budgets","Farmer-investments",
 "Impact-investment","ODA","Offsets","PES","Philanthropy/NGOs",
 "Sustainable-supply-chains", "food","climate","biodiversity","unknown","water"]) 
-.range([ "#333333", "#333333", "#BAB0C9", "#333333", "#B65719", "#B65719",  "#333333", "#C6D68A", "#C6D68A",
-         "#C6D68A", "#333333", "#B65719", "#BAB0C9", "#C6D68A", "#FFFFFF", "#4A928F"])' # manually edit here according to groups
+.range([ "#333333", "#333333", "#BAB0C9", "#333333", "#B65719",  
+  "#333333", "#333333", "#C6D68A", "#C6D68A",  "#C6D68A", 
+  "#B65719", "#B65719", "#BAB0C9", "#C6D68A", "#FFFFFF", "#4A928F"])' # manually edit here according to groups
 # Visualize the colors:
-c("#333333", "#333333", "#BAB0C9", "#333333", "#B65719", "#B65719",  "#333333", "#C6D68A", "#C6D68A",
-         "#C6D68A", "#333333", "#B65719", "#BAB0C9", "#C6D68A", "#FFFFFF", "#4A928F")
+c("#333333", "#333333", "#BAB0C9", "#333333", "#B65719",  
+  "#333333", "#333333", "#C6D68A", "#C6D68A",  "#C6D68A", 
+  "#B65719", "#B65719", "#BAB0C9", "#C6D68A", "#FFFFFF", "#4A928F")
 
 
 posFlowSankey <- sankeyNetwork(Links = as.data.frame(sankeyData), Nodes = myNodes,
@@ -160,3 +162,7 @@ ggplot(pos_data_older, aes(x = Sector, y = meanUSD_Y)) +
   labs(title = "Making sense of financial flows by source", x = "sector", y = "USD Billions annually") +
   coord_cartesian(y = c(0, 800))+
   facet_wrap(~ Source)
+
+# get the total estimates for UNEP reports first
+unepData <- pos_data_older[grep("UNEP", pos_data_older$Source),]
+unepData %>% filter(Source == "UNEP 2021 SFN")
