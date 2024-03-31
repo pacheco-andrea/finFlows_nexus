@@ -47,26 +47,9 @@ wdmain <- "G:/My Drive/Projects/IPBES-Nexus/00_analyses/finFlows_nexus/"
 data <- read.csv(paste0(wdmain, "data/BD_allFinanceFlows_simplified.csv"))
 head(data)
 
+# Create subset of only positive flows  to investigate their nexiness ----
 
-
-
-# nexiness of positive flows ----
-# pos_flow <- data[which(data$Categ_impact == "Positive"),]
-# nrow(pos_flow)
-# # create simplified version for now:
-# pos_flow2 <- pos_flow[which(pos_flow$Source == "UNEP 2022 (State of Finance)"),]
-# pos_flow2 <- pos_flow2[which(pos_flow2$Sector_econAct != "total"),]
-# pos_flow2 <- pos_flow2[which(pos_flow2$Sector_econAct != "marine"),] # need to exclude marine because its double counting, but it should be mentioned in the text
-# pos_data <- pos_flow2
-# table(pos_data$HowNexusy)
-# table(pos_data$HowNexusy1)
-# table(pos_data$HowNexusy2) 
-# table(pos_data$HowNexusy3)
-
-
-# Create subset of only positive flows ----
-
-# USE ONLY the data from UNEP SFN 2023 (most up to date)
+# to begin, use ONLY the data from UNEP SFN 2023 (most up to date)
 pos_data <- data %>% filter(Categ_impact == "Positive", Source == "UNEP 2023 SFN")
 # remove the row that sums all of public spending
 pos_data <- pos_data[which(pos_data$Sector != "Public" | pos_data$Sector_econAct != "total"),]
@@ -136,7 +119,8 @@ setwd("G:/My Drive/Projects/IPBES-Nexus/00_analyses/finFlows_nexus/outputs/")
 saveWidget(posFlowSankey, file = "BDFin_positiveFlows.html")
 
 
-# What can i do to represent the other data that is NOT UNEP 2023 SFN?? ----
+# Synthesize and visualize other data that is NOT UNEP 2023 SFN?? ----
+# (still focused on positive flows)
 
 # get all data that is positive bd finance flows 
 pos_data_older <- data %>% filter(Categ_impact == "Positive") %>%
@@ -173,9 +157,9 @@ pos_data_older %>%
   coord_cartesian(y = c(0, 800)) + # bc otherwise finance watch & Dasgupta take over the y axis
   facet_wrap(~ Source)
 
-# fix the data that's double counting things: 
+# clearly, i need to fix data that's not adding up (due to double-counting): 
 
-# UNEP SFNs
+# UNEP SFNs ----
 
 # UNEP 2021 ----
 unepData <- pos_data_older[grep("UNEP", pos_data_older$Source),]
@@ -186,7 +170,7 @@ unepData2021 <- unepData %>%
   filter(Sector_econAct != "total") %>% # don't double count the sum
   filter(Sector_econAct != "climate") %>% # don't count this bc for some reason they didn't include climate-specific in their accounting of the SFN 2021
   group_by(Sector) %>%
-  summarize(totalUSD = sum(meanUSD_Y))
+  summarize(totalUSD = sum(meanUSD_Y), totalUSD_L = sum(Value_lowerLim), totalUSD_U = sum(Value_upperLim))
 unepData2021 # yes - this is the correct value that sums up to 133B
 unepData2021$year <- 2021
 unepData2021
@@ -195,7 +179,7 @@ unepData2021_climateIncl <- unepData %>%  filter(Source == "UNEP 2021 SFN") %>% 
 unepData2021_climateIncl <- unepData2021_climateIncl[-which(unepData2021_climateIncl$Sector == "Private" & unepData2021_climateIncl$Sector_econAct == "climate"),]
 unepData2021_climateIncl %>%
   group_by(Sector) %>%
-  summarize(totalUSD = sum(meanUSD_Y))
+  summarize(totalUSD = sum(meanUSD_Y), totalUSD_L = sum(Value_lowerLim), totalUSD_U = sum(Value_upperLim))
 
 # I went digging to find out more about this climate data bc of that reviewer comment:
 # in sum - unep 2021 included CPI data on climate financing - but it didn't for 2022 nor 2023
@@ -220,9 +204,85 @@ unepData2022
 
 # UNEP 2023 ----
 # should sum to 200
-unepData %>% 
+unepData2023 <- unepData %>% 
   filter(Source == "UNEP 2023 SFN") %>%
   filter(Sector != "Mixed") %>%
   filter(Sector_econAct != "total") %>%
   group_by(Sector) %>%
-  summarize(totalUSD = sum(meanUSD_Y))
+  summarize(totalUSD = sum(meanUSD_Y), totalUSD_L = sum(Value_lowerLim), totalUSD_U = sum(Value_upperLim))
+unepData2023$year <- 2023
+unepData2023
+
+# summarize UNEP data 
+summUNEP <- rbind(unepData2021, unepData2022, unepData2023)
+summUNEP$Source <- "UNEP"
+
+# OECD data ----
+
+oecd <- pos_data_older[grep("OECD", pos_data_older$Source),]
+
+# OECD 2020 (a comprehensive overview) ----
+# i've finally understood that they do not include any of the impact investment numbers in their accounting
+oecd2020 <- oecd %>% filter(Source == "OECD 2020") %>%
+  filter(Categ_instrmnt != "Impact investment") %>%
+  filter(Sector_econAct != "total") %>%
+  group_by(Sector) %>%
+  summarize(totalUSD = sum(meanUSD_Y), totalUSD_L = sum(Value_lowerLim), totalUSD_U = sum(Value_upperLim))
+oecd2020$year <- 2020
+oecd2020
+# make another copy where i do consider impact investment as a part of private finance
+oecd2020_II <- oecd %>% filter(Source == "OECD 2020") %>%
+  # filter(Categ_instrmnt != "Impact investment") %>%
+  filter(Sector_econAct != "total") %>%
+  group_by(Sector) %>%
+  summarize(totalUSD = sum(meanUSD_Y), totalUSD_L = sum(Value_lowerLim), totalUSD_U = sum(Value_upperLim))
+oecd2020_II$year <- 2020
+oecd2020_II
+
+# OECD 2021 (biodiversity natural capital and economy) ---
+# it seems to me that this report is more focused on the variety of instruments 
+# rather than accounting for total numbers
+# this makes it hard to be sure that these sums are accurate...
+
+oecd2021 <- oecd %>% filter(Source == "OECD 2021")
+# i need to get rid of this row because it is only the taxes from G7 countries (excluding canada), and so it would double-count
+oecd2021 <- oecd2021[-which(oecd2021$Categ_instrmnt == "Taxes" & oecd2021$Value_lowerLim == 2.2),]
+# out of the green bonds, i only want to keep the total estimate (257)  
+oecd2021 <- oecd2021[-which(oecd2021$Categ_instrmnt == "Green bonds" & oecd2021$Value_lowerLim != 257.7),]
+oecd2021 <- oecd2021 %>% group_by(Sector) %>%
+  group_by(Sector) %>%
+  summarize(totalUSD = sum(meanUSD_Y), totalUSD_L = sum(Value_lowerLim), totalUSD_U = sum(Value_upperLim))
+oecd2021$year <- 2021 # private and mixed sectors are now a lot larger than domestic pubic budgets 
+# because they include things like the value of ecotourism markets, the global value of green bond markets, expenditure towards restoration projects
+# and btw, the public sector is also larger bc this includes the revenue generated from bd-targeted taxes
+
+
+# OECD 2022 (climate finance provided and mobilised...) ----
+oecd2022 <- oecd %>% filter(Source == "OECD 2022") # this is just the total provided and mobilized by developed countries for climate action 
+# in developing countries in 2020 (which was, 16.7 billion short of the 2020 goal of 100B)
+
+# summarize OECD
+oecd2020
+oecd2020_II
+oecd2021
+# decided to exclude 2022 bc that's just about climate
+summOECD <- rbind(oecd2020_II, oecd2021) # and include the estimate that includes impact investment bc everything else does too
+summOECD$Source <- "OECD"
+
+# summarize these totals ----
+summUNEP
+summOECD
+
+totalsSummarized <- rbind(summUNEP, summOECD)
+
+# consider renaming the "mixed" category for visualization
+totalsSummarized %>%
+ggplot(aes(x = year, y = totalUSD, fill = Sector)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Making sense of financial flows by source", x = "Year", y = "USD Billions annually") +
+  # coord_cartesian(y = c(0, 800)) + # bc otherwise finance watch & Dasgupta take over the y axis
+  scale_fill_manual(values = c("Private" = "blue", "Public" = "green", "Mixed" = "orange")) +  # Custom fill colors
+  facet_wrap(~ Source)
+
+
+# *** note i probably actually want to re-put all this together, and keep some of the finer categories? for which i won't need the summarize()
