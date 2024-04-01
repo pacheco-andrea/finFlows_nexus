@@ -18,6 +18,7 @@ library(networkD3)
 library(ggplot2)
 library(htmlwidgets)
 library(stringr)
+library(cowplot)
 
 
 # pending issues:
@@ -249,7 +250,7 @@ oecd2021 <- oecd %>% filter(Source == "OECD 2021")
 oecd2021 <- oecd2021[-which(oecd2021$Categ_instrmnt == "Taxes" & oecd2021$Value_lowerLim == 2.2),]
 # out of the green bonds, i only want to keep the total estimate (257)  
 oecd2021 <- oecd2021[-which(oecd2021$Categ_instrmnt == "Green bonds" & oecd2021$Value_lowerLim != 257.7),]
-oecd2021 <- oecd2021 %>% group_by(Sector) %>%
+oecd2021 <- oecd2021 %>% 
   group_by(Sector) %>%
   summarize(totalUSD = sum(meanUSD_Y), totalUSD_L = sum(Value_lowerLim), totalUSD_U = sum(Value_upperLim))
 oecd2021$year <- 2021 # private and mixed sectors are now a lot larger than domestic pubic budgets 
@@ -269,20 +270,160 @@ oecd2021
 summOECD <- rbind(oecd2020_II, oecd2021) # and include the estimate that includes impact investment bc everything else does too
 summOECD$Source <- "OECD"
 
+# Deutz 2020 (Paulson Institute)
+deutz <- pos_data_older %>% filter(Source == "Deutz 2020") %>%
+  filter(Sector_econAct != "total") %>%
+  group_by(Sector) %>%
+  summarize(totalUSD = sum(meanUSD_Y), totalUSD_L = sum(Value_lowerLim), totalUSD_U = sum(Value_upperLim))
+deutz # the mixed category here indicated public-private mix - which can be compared to the OECD 2021 data
+deutz$year <- 2020
+deutz$Source <- "Deutz"
 # summarize these totals ----
 summUNEP
 summOECD
 
-totalsSummarized <- rbind(summUNEP, summOECD)
+totalsSummarized <- rbind(summUNEP, summOECD, deutz)
 
-# consider renaming the "mixed" category for visualization
-totalsSummarized %>%
-ggplot(aes(x = year, y = totalUSD, fill = Sector)) +
+# Total financing by Sector and Source ----
+totalsSummarizedPlot <- totalsSummarized %>%
+  ggplot(aes(x = year, y = totalUSD, fill = Sector)) +
+  geom_col(position = "dodge") +
+  geom_errorbar(data = totalsSummarized[which(totalsSummarized$totalUSD_L < totalsSummarized$totalUSD_U),],
+                aes(ymin = totalUSD_L  , ymax = totalUSD_U   ), color = "gray25", width = 0.2, position = position_dodge(width = 0.7)) +
+    labs(title = "Estimated financial flows to Nature by source", x = element_blank(), y = "USD Billions annually") +
+  scale_fill_manual(values = c("Private" = "#A0AF67", "Public" = "#C3773E", "Mixed" = "#8B78A1")) +  
+  theme(panel.background = element_rect(fill = "white"), panel.grid = element_line(colour = "gray80"))+
+  facet_wrap(~Source)
+totalsSummarizedPlot
+
+# write out this part
+setwd(paste0(wdmain, "outputs/"))
+svg(filename = "EstimatedFinancialFlowsbySource.svg", width = 12, height = 4)
+totalsSummarizedPlot
+dev.off()
+
+# CONTINUE WITH MAKING THIS A SUPER GRAPH ----
+# THAT INCLUDES CERTAINTY - AND MAYBE SECTORS?
+
+a <- data %>% 
+  filter(Categ_impact == "Positive") %>%
+  filter(Source == "UNEP 2021 SFN") %>% 
+  filter(Sector != "Mixed") %>%
+  filter(Sector_econAct != "total") %>% # don't double count the sum
+  filter(Sector_econAct != "climate")
+
+b <- data %>% 
+  filter(Categ_impact == "Positive") %>%
+  filter(Source == "UNEP 2022 SFN") %>%
+  filter(Sector_econAct != "total") %>%
+  # exclude the marine row bc this was just highlighted apart, but is implicitly included in accounting across categories
+  filter(Sector_econAct != "marine")
+
+c <- data %>% 
+  filter(Categ_impact == "Positive") %>%
+  filter(Source == "UNEP 2023 SFN") %>%
+  filter(Sector != "Mixed") %>%
+  filter(Sector_econAct != "total")
+
+d <- data %>% 
+  filter(Categ_impact == "Positive") %>%
+  filter(Source == "OECD 2020") %>%
+  filter(Categ_instrmnt != "Impact investment") %>%
+  filter(Sector_econAct != "total")
+
+# e <- pos_data_older %>% 
+#   filter(Source == "OECD 2020") %>%
+#   # filter(Categ_instrmnt != "Impact investment") %>%
+#   filter(Sector_econAct != "total")
+
+e <- data %>% 
+  filter(Categ_impact == "Positive") %>%
+  filter(Source == "OECD 2021")
+# i need to get rid of this row because it is only the taxes from G7 countries (excluding canada), and so it would double-count
+e <- e[-which(e$Categ_instrmnt == "Taxes" & e$Value_lowerLim == 2.2),]
+# out of the green bonds, i only want to keep the total estimate (257)  
+e <- e[-which(e$Categ_instrmnt == "Green bonds" & e$Value_lowerLim != 257.7),]
+
+f <- data %>% 
+  filter(Categ_impact == "Positive") %>%
+  filter(Source == "Deutz 2020") %>%
+  filter(Sector_econAct != "total")
+
+positiveData <- rbind(a,b,c,d,e,f)
+positiveData$meanUSD_Y <- rowMeans(cbind(positiveData$Value_lowerLim, positiveData$Value_upperLim), na.rm = T)
+
+
+# make the certainty column numeric
+unique(positiveData$Certainty)
+nx_col <- c("#799336","#A0AF67","#C6D68A",     
+            "#196C71","#4A928F","#A7C6C5",     
+            "#4D2D71","#8B78A1","#BAB0C9",    
+            "#791E32",
+            "#B65719","#C3773E",
+            "#D9AA80","#696B5F","#ACABA4","#FFFFFF") 
+
+positiveData %>%
+  ggplot(aes(x = NormalizedValue_YY, y = meanUSD_Y, fill = HowNexusy)) +
   geom_bar(stat = "identity") +
   labs(title = "Making sense of financial flows by source", x = "Year", y = "USD Billions annually") +
-  # coord_cartesian(y = c(0, 800)) + # bc otherwise finance watch & Dasgupta take over the y axis
-  scale_fill_manual(values = c("Private" = "blue", "Public" = "green", "Mixed" = "orange")) +  # Custom fill colors
-  facet_wrap(~ Source)
+  # add the uncertainty bars for unep 2021
+  # scale_fill_manual(values = c("Private" = "#A0AF67", "Public" = "#C3773E", "Mixed" = "#8B78A1")) +  # Custom fill colors
+  scale_fill_manual(values = nx_col) + 
+  facet_wrap(~Source, nrow = 1)
 
+# make different plots to highlight the quality of these data
 
-# *** note i probably actually want to re-put all this together, and keep some of the finer categories? for which i won't need the summarize()
+# Public, private, and mixed sources of financing over the years
+sectorPlot <- positiveData %>%
+  ggplot(aes(x = NormalizedValue_YY, y = meanUSD_Y, fill = Sector)) +
+  geom_col(position = "dodge", width = 0.7) +
+  # add the uncertainty bars for unep 2021 - though maybe this would be more appropriate for the a
+  geom_errorbar(data = positiveData[which(positiveData$Source == "UNEP 2022 SFN"),],
+                aes(ymin = Value_lowerLim , ymax = Value_upperLim ), color = "gray25", width = 0.2, position = position_dodge(width = 0.5)) +
+  labs(title = "Public, private, and public-private mixes of financial flows to Nature", x = element_blank(), y = "USD Billions annually") +
+  scale_x_continuous(breaks = c(2017, 2018, 2019, 2020, 2021, 2022, 2023)) + # there were 2015 and 2016 values, but so tiny barely able to see
+  coord_cartesian(xlim = c(2017, 2023)) +
+  scale_fill_manual(values = c("Private" = "#A0AF67", "Public" = "#C3773E", "Mixed" = "#8B78A1")) +  # Custom fill colors
+  theme(panel.background = element_rect(fill = "white"), panel.grid = element_line(colour = "gray80"))+
+  facet_wrap(~Source, ncol = 1) 
+sectorPlot
+
+# Certainty of data reported over the years
+certaintyPlot <- positiveData %>%
+  ggplot(aes(x = NormalizedValue_YY, y = meanUSD_Y, fill = Certainty)) +
+  geom_col(position = "dodge", width = 0.7) +
+  # # add the uncertainty bars for unep 2021 - though maybe this would be more appropriate for the a
+  # geom_errorbar(data = positiveData[which(positiveData$Source == "UNEP 2022 SFN"),],
+  #               aes(ymin = Value_lowerLim , ymax = Value_upperLim ), color = "gray25", width = 0.2, position = position_dodge(width = 0.5)) +
+  labs(title = "Certainty of financial flows to Nature reported", x = element_blank(), y = "USD Billions annually") +
+  scale_x_continuous(breaks = c(2017, 2018, 2019, 2020, 2021, 2022, 2023)) + # there were 2015 and 2016 values, but so tiny barely able to see
+  coord_cartesian(xlim = c(2017, 2023)) +
+  scale_fill_manual(values = c("low" = "#C6D68A", "medium" = "#D9AA80", "high" = "#196C71", "unknown" = "#ACABA4", "quantified" = "#EDD018")) +  # Custom fill colors
+  theme(panel.background = element_rect(fill = "white"), panel.grid = element_line(colour = "gray80"))+
+  facet_wrap(~Source, ncol = 1)
+certaintyPlot
+
+# instruments
+
+my_nx_col <- c("#799336","#A0AF67","#C6D68A",     
+               "#196C71","#4A928F","#A7C6C5",     
+               "#4D2D71","#8B78A1","#BAB0C9",    
+               "#791E32","#d14765","#f0c2cc",
+               "#B65719","#C3773E","#D9AA80",
+               "#ffffff", "#696B5F","#ACABA4","gray15",
+               "#D5B41F", "#EDD018", "#F9E855") 
+
+instrumentsPlot <- positiveData %>%
+  ggplot(aes(x = NormalizedValue_YY, y = meanUSD_Y, fill = Categ_instrmnt)) +
+  geom_col(position = "dodge", width = 0.7) +
+  # # add the uncertainty bars for unep 2021 - though maybe this would be more appropriate for the a
+  # geom_errorbar(data = positiveData[which(positiveData$Source == "UNEP 2022 SFN"),],
+  #               aes(ymin = Value_lowerLim , ymax = Value_upperLim ), color = "gray25", width = 0.2, position = position_dodge(width = 0.5)) +
+  labs(title = "Financial flows to Nature by sector ", x = element_blank(), y = "USD Billions annually") +
+  scale_x_continuous(breaks = c(2017, 2018, 2019, 2020, 2021, 2022, 2023)) + # there were 2015 and 2016 values, but so tiny barely able to see
+  coord_cartesian(xlim = c(2017, 2023)) +
+  scale_fill_manual(values = my_nx_col) +  # Custom fill colors
+  facet_wrap(~Source, ncol = 1)
+instrumentsPlot
+
+plot_grid(totalsSummarizedPlot, certaintyPlot, instrumentsPlot, ncol = 3)
