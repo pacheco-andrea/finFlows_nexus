@@ -195,64 +195,25 @@ dev.off()
 data2 <- rbind(unepData2021, unepData2022, unepData2023, oecd2020_II, oecd2021, deutz)
 summary(data2)
 
-# ---- this section should be unnecessary ----
-a <- data %>% 
-  filter(Categ_impact == "Positive") %>%
-  filter(Source == "UNEP 2021 SFN") %>% 
-  filter(Sector != "Mixed") %>%
-  filter(Sector_econAct != "total") %>% # don't double count the sum
-  filter(Sector_econAct != "climate")
-
-b <- data %>% 
-  filter(Categ_impact == "Positive") %>%
-  filter(Source == "UNEP 2022 SFN") %>%
-  filter(Sector_econAct != "total") %>%
-  # exclude the marine row bc this was just highlighted apart, but is implicitly included in accounting across categories
-  filter(Sector_econAct != "marine")
-
-c <- data %>% 
-  filter(Categ_impact == "Positive") %>%
-  filter(Source == "UNEP 2023 SFN") %>%
-  filter(Sector != "Mixed") %>%
-  filter(Sector_econAct != "total")
-
-d <- data %>% 
-  filter(Categ_impact == "Positive") %>%
-  filter(Source == "OECD 2020") %>%
-  # filter(Categ_instrmnt != "Impact investment") %>% # option here to include or not include the impact investments
-  filter(Sector_econAct != "total")
-
-e <- data %>% 
-  filter(Categ_impact == "Positive") %>%
-  filter(Source == "OECD 2021")
-# i need to get rid of this row because it is only the taxes from G7 countries (excluding canada), and so it would double-count
-e <- e[-which(e$Categ_instrmnt == "Taxes" & e$Value_lowerLim == 2.2),]
-# out of the green bonds, i only want to keep the 10.308 (because the others are totals of all green bonds)
-e <- e[-which(e$Categ_instrmnt == "Green bonds" & e$Value_lowerLim != 10.308),]
-
-f <- data %>% 
-  filter(Categ_impact == "Positive") %>%
-  filter(Source == "Deutz 2020") %>%
-  filter(Sector_econAct != "total")
-
-positiveData <- rbind(a,b,c,d,e,f)
-positiveData$meanUSD_Y <- rowMeans(cbind(positiveData$Value_lowerLim, positiveData$Value_upperLim), na.rm = T)
-
-############## trying to find out the difference between the positiveData and totalsSummarized
-
 # attempt 2 at the super graph: ----
 positiveData <- data2
 positiveData$Source2 <- gsub(" ", "", stringr::str_match(positiveData$Source, "^(\\D+)(\\d+)")[,2])
 positiveData$Source2 <- gsub("Deutz", "Paulson Institute et al.", positiveData$Source2)
 positiveData$Year2 <- as.integer(stringr::str_match(positiveData$Source, "^(\\D+)(\\d+)")[,3])
 
-# Public, private, and mixed sources of financing over the years
-sectorPlot <- positiveData %>%
+# Public, private, and mixed sources of financing over the years ----
+
+# summ the fin flows before to make it easier for ggplot
+sectorPlotData <- positiveData %>%
+  group_by(Source2, Year2, Sector) %>%
+  summarize(meanUSD_Y = sum(meanUSD_Y), Value_lowerLim = sum(Value_lowerLim), Value_upperLim = sum(Value_upperLim))
+
+sectorPlot <- sectorPlotData  %>%
   ggplot(aes(x = Year2, y = meanUSD_Y, fill = Sector)) +
-  geom_col(position = "dodge", width = 0.5) +
+  geom_col(position = "dodge") +
   # the error bars need to be the sum of the rows that fulfill those conditions
-  geom_errorbar(data = positiveData[which(positiveData$Value_lowerLim  < positiveData$Value_upperLim),],
-                aes(ymin = Value_lowerLim, ymax = Value_upperLim), color = "gray25", width = 0.2, position = position_dodge(width = 0.7)) +
+  geom_errorbar(data = sectorPlotData[which(sectorPlotData$Value_lowerLim  < sectorPlotData$Value_upperLim),],
+                aes(ymin = Value_lowerLim, ymax = Value_upperLim), color = "gray25", width = 0.2, position = position_dodge(width = 0.8)) +
   labs(title = "Estimated financial flows to Nature by source", x = element_blank(), y = "USD Billions annually") +
   # scale_x_continuous(breaks = c(2019, 2020, 2021, 2022, 2023)) +
   # coord_cartesian(xlim = c(2020, 2023)) +
@@ -261,14 +222,38 @@ sectorPlot <- positiveData %>%
   facet_wrap(~Source2) 
 sectorPlot
 
-# check against the totals summarized plot - there's still a difference in the sums it seems
-# is this a ggplot thing or a dplyr thing?
-# see the data:
-positiveData %>%
-  group_by(Sector, Source2, Year2) %>%
-  summarize(totalUSD = sum(meanUSD_Y), totalUSD_L = sum(Value_lowerLim), totalUSD_U = sum(Value_upperLim))
+# check its the same as before:
+plot_grid(totalsSummarizedPlot, sectorPlot, nrow = 2) #yes!
+
+# write out a copy
+setwd(paste0(wdmain, "outputs/"))
+svg(filename = "EstimatedFinancialFlowsbySource_v2.svg", width = 12, height = 4)
+sectorPlot
+dev.off()
 
 
+#  certainty ----
+certaintyPlotData <- positiveData %>%
+  group_by(Source2, Year2, Certainty) %>%
+  summarize(meanUSD_Y = sum(meanUSD_Y), Value_lowerLim = sum(Value_lowerLim), Value_upperLim = sum(Value_upperLim))
+
+certaintyPlotData$Certainty <- factor(certaintyPlotData$Certainty, levels = c("quantified", "high", "medium", "low", "unknown"))
+
+certaintyPlot <-  certaintyPlotData %>%
+  ggplot(aes(x = Year2, y = meanUSD_Y, fill = Certainty)) +
+  geom_col() +
+  labs(title = "Reported certainty levels for estimated financial flows to Nature", x = element_blank(), y = "USD Billions annually") +
+  scale_fill_manual(values = c("low" = "#B65719", "medium" = "#D9AA80", "high" = "#F9E855", "unknown" = "#ACABA4", "quantified" = "#D5B41F")) +  
+  # scale_x_continuous(breaks = c(2019, 2020, 2021, 2022, 2023)) +
+  # coord_cartesian(xlim = c(2020, 2023)) +
+  theme(panel.background = element_rect(fill = "white"), panel.grid = element_line(colour = "gray80"))+
+  facet_wrap(~Source2)
+certaintyPlot
+
+setwd(paste0(wdmain, "outputs/"))
+svg(filename = "EstimatedFinancialFlowsbyCertainty.svg", width = 12, height = 4)
+certaintyPlot
+dev.off()
 
 
 # some manual editing of the categories of instruments to aggregate a bit
@@ -277,6 +262,10 @@ positiveData$Categ_instrmnt <- gsub("Government support/subsidies", "Subsidies",
 positiveData$Categ_instrmnt <- gsub("Green bonds/loans", "Green bonds", positiveData$Categ_instrmnt)
 positiveData$Categ_instrmnt <- gsub("Multiple", "Other", positiveData$Categ_instrmnt)
 positiveData$Categ_instrmnt <- gsub("Voluntary carbon markets", "Carbon markets", positiveData$Categ_instrmnt)
+
+instrumentsPlotData <- positiveData %>%
+  group_by(Source2, Year2, Categ_instrmnt) %>%
+  summarize(meanUSD_Y = sum(meanUSD_Y), Value_lowerLim = sum(Value_lowerLim), Value_upperLim = sum(Value_upperLim))
 
 my_nx_col <- c("#C6D68A","#C3773E","#799336",     
                "#196C71","#4A928F","#A7C6C5",     
@@ -287,53 +276,30 @@ my_nx_col <- c("#C6D68A","#C3773E","#799336",
 
 # could make the the categories a factor that would be ordered by the size of financing - but leave this for later
 
-instrumentsPlot2 <-  positiveData %>%
+instrumentsPlot <-  instrumentsPlotData %>%
   ggplot(aes(x = Year2, y = meanUSD_Y, fill = Categ_instrmnt)) +
-  geom_col(width = 0.5) +
-  # the error bars need to be the sum of the rows that fulfill those conditions
-  # geom_errorbar(data = positiveData[which(positiveData$Value_lowerLim  < positiveData$Value_upperLim),],
-  #               aes(ymin = Value_lowerLim, ymax = Value_upperLim), color = "gray25", width = 0.2, position = position_dodge(width = 0.7)) +
+  geom_col() +
   labs(title = "Estimated financial flows to Nature disaggregated by instrument", x = element_blank(), y = "USD Billions annually") +
   scale_fill_manual(values = my_nx_col) +  
-  scale_x_continuous(breaks = c(2019, 2020, 2021, 2022, 2023)) +
-  coord_cartesian(xlim = c(2020, 2023)) +
+  # scale_x_continuous(breaks = c(2019, 2020, 2021, 2022, 2023)) +
+  # coord_cartesian(xlim = c(2020, 2023)) +
   theme(panel.background = element_rect(fill = "white"), panel.grid = element_line(colour = "gray80"))+
   facet_wrap(~Source2)
-instrumentsPlot2
+instrumentsPlot
 
 # write out 
 setwd(paste0(wdmain, "outputs/"))
 svg(filename = "EstimatedFinancialFlowsbyInstruments.svg", width = 12, height = 4)
-instrumentsPlot2
+instrumentsPlot
 dev.off()
 
 
-
-#  certainty
-
-certaintyPlot2 <-  positiveData %>%
-  ggplot(aes(x = Year2, y = meanUSD_Y, fill = Certainty)) +
-  geom_col(width = 0.5) +
-  labs(title = "Reported certainty levels for estimated financial flows to Nature", x = element_blank(), y = "USD Billions annually") +
-  scale_fill_manual(values = c("low" = "#C6D68A", "medium" = "#D9AA80", "high" = "#196C71", "unknown" = "#ACABA4", "quantified" = "#EDD018")) +  
-  scale_x_continuous(breaks = c(2019, 2020, 2021, 2022, 2023)) +
-  coord_cartesian(xlim = c(2020, 2023)) +
-  theme(panel.background = element_rect(fill = "white"), panel.grid = element_line(colour = "gray80"))+
-  facet_wrap(~Source2)
-certaintyPlot2
-
-setwd(paste0(wdmain, "outputs/"))
-svg(filename = "EstimatedFinancialFlowsbyCertainty.svg", width = 12, height = 4)
-certaintyPlot2
-dev.off()
-
-
-# make one large graph with all three views on these data: ----
+# One large graph with all three views on these data: ----
 setwd(paste0(wdmain, "outputs/"))
 png(filename = "DataQualityPlot.png", res = 300, width = 32, height = 37, units = "cm")
 
-plot_grid(totalsSummarizedPlot, certaintyPlot2, instrumentsPlot2, nrow = 3, 
-          rel_widths = 1, labels = c("A", "B", "C"))
+plot_grid(sectorPlot, certaintyPlot, instrumentsPlot, nrow = 3, 
+          rel_widths = c(1,1,1.2), labels = c("A", "B", "C"), align = "hv")
 dev.off()
 
 
