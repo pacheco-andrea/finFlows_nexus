@@ -17,7 +17,6 @@ library(tidyverse)
 library(networkD3)
 library(ggplot2)
 library(htmlwidgets)
-library(stringr)
 
 
 # pending issues:
@@ -26,52 +25,57 @@ library(stringr)
 
 # set directories
 wdmain <- "G:/My Drive/Projects/IPBES-Nexus/00_analyses/finFlows_nexus/"
+setwd(paste0(wdmain))
 
-# # upon first run, read data on ALL volumes of financial flows to biodiversity
-# bd_fin <- read.csv(paste0(wdmain, "data/BD_allFinanceFlows.csv")) # this data describes all kinds of financial flows for biodiversity finance
-# # clean this data:
-# head(bd_fin)
-# bd_fin2 <- select(bd_fin, -c("Descr.Method", "CertaintyDetail", "SourceDetail"))# remove the description col for ease of viewing the data in R
-# # standardize the case of certain variables
-# unique(bd_fin2$Sector_econAct)
-# head(bd_fin2)
-# nrow(bd_fin2) == length(unique(bd_fin$id))
-# unlist(lapply(bd_fin2, class))
-# setwd(paste0(wdmain, "data/"))
-# write.csv(bd_fin2, "BD_allFinanceFlows_simplified.csv", row.names = F)
+# upon first run:
+# source(paste0(wdmain, "code/00_makeData.R"))
 
 # read clean(er) data to explore ranges of fin volumes
 data <- read.csv(paste0(wdmain, "data/BD_allFinanceFlows_simplified.csv"))
+data <- read.csv(paste0(wdmain, "data/BD_allFinanceFlows_nexus.csv"))
 head(data)
+data <- select(data, c("Categ_impact", "Sector", "Categ_instrmnt", "Sector_econAct", "Value_lowerLim",
+                 "Value_upperLim", "NormalizedValue_YY", "HowNexusy", "HowNexusy1", "HowNexusy2", "HowNexusy3", "Source"))
 
 # Create subset of only positive flows  to investigate their nexiness ----
 
-# to begin, use ONLY the data from UNEP SFN 2023 (most up to date)
+# use ONLY the data from UNEP SFN 2023 (most up to date - best choice for comparability)
 pos_data <- data %>% filter(Categ_impact == "Positive", Source == "UNEP 2023 SFN")
-# remove the row that sums all of public spending
-pos_data <- pos_data[which(pos_data$Sector != "Public" | pos_data$Sector_econAct != "total"),]
-# also remove the row that sums all of public and private spending
-pos_data <- pos_data[which(pos_data$Sector != "Mixed"),]
+# remove the rows that sums all of public spending
+pos_data <- pos_data[-grep("total$", pos_data$Sector_econAct),]
+
 # create mean value (though less relevant in this version of the SFN)
-pos_data$mValue <- rowMeans(cbind(pos_data$Value_lowerLim, pos_data$Value_upperLim), na.rm = T) # (this should be improved later to incorporate uncertainties)
+pos_data$mValue <- rowMeans(cbind(pos_data$Value_lowerLim, pos_data$Value_upperLim), na.rm = T) 
 pos_data
 
 # create df for Sankey diagram ----
-# table needs to have create sources and targets (two id columns), and one column for nodes (these are the names) 
-sankeyData <- pos_data %>% select(c("Sector", "Categ_instrmnt", "HowNexusy", "HowNexusy1", "mValue")) # add more nodes later (instruments, more nexus), start with only two levels of nexiness
-# make some label fixes:
+
+# clean up and select only data i need
+sankeyData <- pos_data %>% select(c("Sector", "Categ_instrmnt", "HowNexusy", "HowNexusy1", "HowNexusy2", "mValue")) # add more nodes later (instruments, more nexus), start with only two levels of nexiness
+# make some label fixes: 
 sankeyData$Categ_instrmnt <- gsub("Farmer's investments", "Farmer investments", sankeyData$Categ_instrmnt)
-# summarize data because values should be plotted by total of category (i.e., sector)
+# recategorize some instruments
+# (these follow what I've also done in the data quality barplots)
+sankeyData$Categ_instrmnt <- gsub("Domestic budgets/Taxes", "Taxes", sankeyData$Categ_instrmnt)
+sankeyData$Categ_instrmnt <- gsub("Government support/subsidies", "Subsidies", sankeyData$Categ_instrmnt)
+sankeyData$Categ_instrmnt <- gsub("Green bonds/loans", "Green bonds", sankeyData$Categ_instrmnt)
+sankeyData$Categ_instrmnt <- gsub("Multiple", "Other", sankeyData$Categ_instrmnt)
+sankeyData$Categ_instrmnt <- gsub("Voluntary carbon markets", "Carbon markets", sankeyData$Categ_instrmnt)
+
+# the table for Sankey network needs to have sources and targets (two id columns), and one column for nodes (these are the names) 
+# this means i need to summarize the data (sum of $ per category) 
+# because values should be plotted by total of category (i.e., sector)
+
 sum0 <- sankeyData %>% group_by(Sector, Categ_instrmnt) %>% summarize(mValue = sum(mValue))
 colnames(sum0) <- c("source", "target", "value")
 sum1 <- sankeyData %>%  group_by(Categ_instrmnt, HowNexusy) %>%  summarise(mValue = sum(mValue)) # summarize total values per sector and biodiv (source 1 - target 1)
-# so, how much private, public, (and mixed) goes where?
 colnames(sum1) <- c("source", "target", "value")
-# sum 2: how much from biodiversity goes also to other nexus elements
 sum2 <- sankeyData %>% group_by(HowNexusy, HowNexusy1) %>% summarise(mValue = sum(mValue))
 colnames(sum2) <- c("source", "target", "value")
+sum3 <- sankeyData %>% group_by(HowNexusy1, HowNexusy2) %>% summarise(mValue = sum(mValue))
+colnames(sum3) <- c("source", "target", "value")
 
-sankeyData <- rbind(sum0, sum1, sum2)
+sankeyData <- rbind(sum0, sum1, sum2, sum3)
 # note, it's necessary to remove the NAs from the flows df. 
 # this doesn't remove flows, it just "puts a stopper" in the end nodes
 sankeyData <- sankeyData[which(!is.na(sankeyData$target)),]
@@ -92,15 +96,17 @@ sankeyData$IDtarget = match(sankeyData$target, myNodes$name)-1
 
 ipbesCols = 'd3.scaleOrdinal() 
 .domain(["Private","Public","Carbon-markets","Domestic-budgets","Farmer-investments",
-"Impact-investment","ODA","Offsets","PES","Philanthropy/NGOs",
-"Sustainable-supply-chains", "food","climate","biodiversity","unknown","water"]) 
-.range([ "#333333", "#333333", "#BAB0C9", "#333333", "#B65719",  
+"Impact-investments", "ODA","Offsets","PES","Philanthropy/NGOs",
+"Sustainable-supply-chains", "food", "health", "biodiversity", "climate","unknown","water"]) 
+.range(["#333333", "#333333", "#BAB0C9", "#333333", "#B65719",  
   "#333333", "#333333", "#C6D68A", "#C6D68A",  "#C6D68A", 
-  "#B65719", "#B65719", "#BAB0C9", "#C6D68A", "#FFFFFF", "#4A928F"])' # manually edit here according to groups
+  "#B65719", "#B65719","#791E32", "#C6D68A", "#BAB0C9",  "#ACABA4", "#4A928F"])' # manually edit here according to groups
+
+
 # Visualize the colors:
-c("#333333", "#333333", "#BAB0C9", "#333333", "#B65719",  
+length(c("#333333", "#333333", "#BAB0C9", "#333333", "#B65719",  
   "#333333", "#333333", "#C6D68A", "#C6D68A",  "#C6D68A", 
-  "#B65719", "#B65719", "#BAB0C9", "#C6D68A", "#FFFFFF", "#4A928F")
+  "#B65719", "#B65719","#791E32", "#C6D68A", "#BAB0C9",  "#ACABA4", "#4A928F"))
 
 
 posFlowSankey <- sankeyNetwork(Links = as.data.frame(sankeyData), Nodes = myNodes,
