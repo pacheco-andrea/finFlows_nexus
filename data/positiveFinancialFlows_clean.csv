@@ -1,0 +1,60 @@
+"id","Category","Categ_impact","Sector","Categ_instrmnt","Sector_econAct","Value_lowerLim","Value_upperLim","Unit..USD.YY.","YearData","NormalizedValue_YY","Certainty","HowNexusy","HowNexusy1","HowNexusy2","HowNexusy3","Source","meanUSD_Y","Source2","Year2"
+7,"BD_fin","Positive","Private","Offsets","conservation & sustainability",4.8,4.8,"billion USD","",2016,"low","biodiversity","biodiversity",NA,NA,"UNEP 2021 SFN",4.8,"UNEP",2021
+72,"BD_fin","Positive","Private","Philanthropy/NGOs","total NbS",2,2,"billion USD","",2021,"medium","biodiversity","biodiversity",NA,NA,"UNEP 2021 SFN",2,"UNEP",2021
+71,"BD_fin","Positive","Private","Private equity impact spending","Nbs",3,3,"billion USD","",2021,"medium","biodiversity","biodiversity",NA,NA,"UNEP 2021 SFN",3,"UNEP",2021
+73,"BD_fin","Positive","Private","Carbon markets","forest/carbon",0.221,0.221,"billion USD","",2021,"high","biodiversity, climate","biodiversity","climate",NA,"UNEP 2021 SFN",0.221,"UNEP",2021
+74,"BD_fin","Positive","Private","Other","total NbS",0.542,0.542,"billion USD","",2021,"high","biodiversity, climate, unknown","biodiversity","climate",NA,"UNEP 2021 SFN",0.542,"UNEP",2021
+75,"BD_fin","Positive","Private","PES","NbS",0.51,0.51,"billion USD","",2021,"high","biodiversity, climate, water","biodiversity","climate_water",NA,"UNEP 2021 SFN",0.51,"UNEP",2021
+70,"BD_fin","Positive","Private","Sustainable supply chains","agriculture",7,7,"billion USD","",2021,"low","biodiversity, food","biodiversity","food",NA,"UNEP 2021 SFN",7,"UNEP",2021
+81,"BD_fin","Positive","Public","Domestic budgets","conservation & sustainability",53,53,"billion USD","",2021,"high","biodiversity","biodiversity",NA,NA,"UNEP 2021 SFN",53,"UNEP",2021
+82,"BD_fin","Positive","Public","Domestic budgets","environmental policy, other",8,8,"billion USD","",2021,"medium","biodiversity","biodiversity",NA,NA,"UNEP 2021 SFN",8,"UNEP",2021
+80,"BD_fin","Positive","Public","Domestic budgets","pollution",11,11,"billion USD","",2021,"medium","biodiversity, climate, health","biodiversity","climate_health",NA,"UNEP 2021 SFN",11,"UNEP",2021
+78,"BD_fin","Positive","Public","Domestic budgets","agriculture, forestry & fishing",23,23,"billion USD","",2021,"low","biodiversity, food","biodiversity","food",NA,"UNEP 2021 SFN",23,"UNEP",2021
+79,"BD_fin","Positive","Public","Domestic budgets","water",17,17,"billion USD","",2021,"medium","biodiversity, water","biodiversity","water",NA,"UNEP 2021 SFN",17,"UNEP",2021
+68,"BD_fin","Positive","Public","ODA","international (ODAs and other financial flows)",2.4,2.4,"billion USD","",2021,"unknown","unknown","unknown",NA,NA,"UNEP 2021 SFN",2.4,"UNEP",2021
+102,"BD_fin","Positive","Private","Impact investment","total NbS",3,4,"billion USD","",2021,"quantified","biodiversity","biodiversity",NA,NA,"UNEP 2022 SFN",3.5,"UNEP",2022
+101,"BD_fin","Positive","Private","Offsets","total NbS",3,8,"billion USD","",2021,"quantified","biodiversity","biodiversity",NA,NA,"UNEP 2022 SFN",5.5,"UNEP",2022
+103,"BD_fin","Positive","Private","PES","NbS",2,5,"billion USD","",2021,"quantified","biodiversity","biodiversity",NA,NA,"UNEP 2022 SFN",3.5,"UNEP",2022
+104,"BD_fin","Positive","Private","Philanthropy/NGOs","total NbS",3,4,"billion USD","",2021,"quantified","biodiversity","biodiversity",NA,NA,"UNEP 2022 SFN",3.5,"UNEP",2022
+105,"BD_fin","Positive","Private","Multilateral funds","total NbS",0.4,1,"billion USD","",2021,"quantified","biodiversity, climate","biodiversity","climate",NA,"UNEP 2022 SFN",0.7,"UNEP",2022
+99,"BD_fin","Positive","Private","Carbon markets","forest/carbon",1,2,"billion USD","",2021,"quantified","biodiversity, climate","biodiversity","climate",NA,"UNEP 2022 SFN",1.5,"UNEP",2022
+100,"BD_fin","Positive","Private","Sustainable supply chains","agriculture",6,9,"billion USD","",2021,"quantified","biodiversity, food","biodiversity","food",NA,"UNEP 2022 SFN",7.5,"UNEP",2022
+97,"BD_fin","Positive","Public","Domestic budgets","conservation & sustainability",52,64,"billion USD","",2021,"quantified","biodiversity","biodiversity",NA,NA,"UNEP 2022 SFN",58,"UNEP",2022
+98,"BD_fin","Positive","Public","Environmental policy/other","environmental policy, other",2,16,"billion USD","",2021,"quantified","biodiversity","biodiversity",NA,NA,"UNEP 2022 SFN",9,"UNEP",2022
+94,"BD_fin","Positive","Public","Domestic budgets","agriculture, forestry & fishing",3,55,"billion USD","",2021,"quantified","biodiversity, food, water","biodiversity","food_water",NA,"UNEP 2022 SFN",29,"UNEP",2022
+93,"BD_fin","Positive","Public","ODA","international (ODAs and other financial flows)",2,3,"billion USD","",2021,"quantified","unknown","unknown",NA,NA,"UNEP 2022 SFN",2.5,"UNEP",2022
+96,"BD_fin","Positive","Public","Domestic budgets","pollution, conservation & sustainability, water",3,23,"billion USD","",2021,"quantified","water","biodiversity","water",NA,"UNEP 2022 SFN",13,"UNEP",2022
+95,"BD_fin","Positive","Public","Domestic budgets","water",2,33,"billion USD","",2021,"quantified","water","biodiversity","water",NA,"UNEP 2022 SFN",17.5,"UNEP",2022
+133,"BD_fin","Positive","Private","Offsets","conservation & sustainability",11.7,NA,"billion USD","",2023,"unknown","biodiversity",NA,NA,NA,"UNEP 2023 SFN",11.7,"UNEP",2023
+138,"BD_fin","Positive","Private","PES","conservation & sustainability",3.5,NA,"billion USD","2020",2023,"unknown","biodiversity",NA,NA,NA,"UNEP 2023 SFN",3.5,"UNEP",2023
+136,"BD_fin","Positive","Private","Philanthropy/NGOs","conservation & sustainability",3.9,NA,"billion USD","2021",2023,"unknown","biodiversity",NA,NA,NA,"UNEP 2023 SFN",3.9,"UNEP",2023
+137,"BD_fin","Positive","Private","Carbon markets","carbon",1.5,NA,"billion USD","2021",2023,"unknown","climate",NA,NA,NA,"UNEP 2023 SFN",1.5,"UNEP",2023
+139,"BD_fin","Positive","Private","Farmer's investments","agriculture",1.4,1.6,"billion USD","",2023,"unknown","food","biodiversity",NA,NA,"UNEP 2023 SFN",1.5,"UNEP",2023
+134,"BD_fin","Positive","Private","Sustainable supply chains","agriculture",8.6,NA,"billion USD","2022",2023,"unknown","food",NA,NA,NA,"UNEP 2023 SFN",8.6,"UNEP",2023
+135,"BD_fin","Positive","Private","Impact investment","total NbS",4.6,NA,"billion USD","",2023,"unknown","unknown",NA,NA,NA,"UNEP 2023 SFN",4.6,"UNEP",2023
+128,"BD_fin","Positive","Public","Domestic budgets","conservation & sustainability",75.9,NA,"billion USD","",2023,"unknown","biodiversity",NA,NA,NA,"UNEP 2023 SFN",75.9,"UNEP",2023
+129,"BD_fin","Positive","Public","Domestic budgets","agriculture, forestry & fishing",41.5,NA,"billion USD","",2023,"unknown","food","biodiversity",NA,NA,"UNEP 2023 SFN",41.5,"UNEP",2023
+132,"BD_fin","Positive","Public","Domestic budgets","environmental policy, other",13.5,NA,"billion USD","",2023,"unknown","unknown",NA,NA,NA,"UNEP 2023 SFN",13.5,"UNEP",2023
+131,"BD_fin","Positive","Public","Domestic budgets","pollution",15.4,NA,"billion USD","",2023,"unknown","unknown",NA,NA,NA,"UNEP 2023 SFN",15.4,"UNEP",2023
+127,"BD_fin","Positive","Public","ODA","international (ODAs and other financial flows)",2.2,NA,"billion USD","2021",2023,"unknown","unknown",NA,NA,NA,"UNEP 2023 SFN",2.2,"UNEP",2023
+130,"BD_fin","Positive","Public","Domestic budgets","water",16.2,NA,"billion USD","",2023,"unknown","water",NA,NA,NA,"UNEP 2023 SFN",16.2,"UNEP",2023
+9,"BD_fin","Positive","Public","Domestic budgets","conservation & sustainability",67.8,67.8,"billion USD","",2017,"high","biodiversity","biodiversity",NA,NA,"OECD 2020",67.8,"OECD",2020
+15,"BD_fin","Positive","Private","Impact investment","forestry",9.5,9.5,"billion USD","",2018,"unknown","biodiversity","biodiversity",NA,NA,"OECD 2020",9.5,"OECD",2020
+14,"BD_fin","Positive","Private","Impact investment","unknown",33,33,"billion USD","",2018,"unknown","biodiversity, climate","biodiversity","climate",NA,"OECD 2020",33,"OECD",2020
+11,"BD_fin","Positive","Private","Other","conservation & sustainability",6.6,13.6,"billion USD","",2017,"low","biodiversity, food, climate, water","biodiversity","food_climate_water",NA,"OECD 2020",10.1,"OECD",2020
+10,"BD_fin","Positive","Public","International budgets","conservation & sustainability",3.9,9.3,"billion USD","",2017,"low","biodiversity, water","biodiversity","water",NA,"OECD 2020",6.6,"OECD",2020
+62,"BD_fin","Positive","Mixed","PES","conservation & sustainability",18.2,18.2,"billion USD","",2021,"unknown","biodiversity","biodiversity",NA,NA,"OECD 2021",18.2,"OECD",2021
+3,"BD_fin","Positive","Mixed","Other","conservation & sustainability",9.5,9.5,"billion USD","",2015,"unknown","biodiversity, water, (climate implied)","biodiversity","water","climate","OECD 2021",9.5,"OECD",2021
+22,"BD_fin","Positive","Mixed","Ecotourism","tourism",181,181,"billion USD","",2019,"unknown","biodiversity","biodiversity",NA,NA,"OECD 2021",181,"OECD",2021
+25,"BD_fin","Positive","Private","Green bonds","unknown",10.308,10.308,"billion USD","",2019,"unknown","biodiversity, climate, water","biodiversity","climate_water",NA,"OECD 2021",10.308,"OECD",2021
+65,"BD_fin","Positive","Private","Other","conservation & sustainability",6.6,13.6,"billion USD","",2021,"high","biodiversity, food, climate, water (health implicit because of private finance to public development)","biodiversity","food_climate_water","health","OECD 2021",10.1,"OECD",2021
+53,"BD_fin","Positive","Public","Domestic budgets","conservation & sustainability",67.8,67.8,"billion USD","",2020,"unknown","biodiversity","biodiversity",NA,NA,"OECD 2021",67.8,"OECD",2021
+60,"BD_fin","Positive","Public","Taxes","conservation & sustainability",7.6,7.6,"billion USD","",2021,"unknown","biodiversity","biodiversity",NA,NA,"OECD 2021",7.6,"OECD",2021
+44,"BD_fin","Positive","Public","Taxes","conservation & sustainability",74.6,77.7,"billion USD","",2019,"unknown","biodiversity","biodiversity",NA,NA,"Deutz 2020",76.15,"Paulson Institute et al.",2020
+49,"BD_fin","Positive","Mixed","Green bonds","unknown",3.8,6.3,"billion USD","",2019,"low","biodiversity","biodiversity",NA,NA,"Deutz 2020",5.05,"Paulson Institute et al.",2020
+47,"BD_fin","Positive","Mixed","Offsets","conservation & sustainability",6.3,9.2,"billion USD","",2019,"unknown","biodiversity","biodiversity",NA,NA,"Deutz 2020",7.75,"Paulson Institute et al.",2020
+48,"BD_fin","Positive","Mixed","Philanthropy/NGOs","conservation & sustainability",1.7,3.5,"billion USD","",2019,"medium","biodiversity","biodiversity",NA,NA,"Deutz 2020",2.6,"Paulson Institute et al.",2020
+46,"BD_fin","Positive","Mixed","Carbon markets","NbS",0.8,1.4,"billion USD","",2019,"unknown","biodiversity, climate","biodiversity","climate",NA,"Deutz 2020",1.1,"Paulson Institute et al.",2020
+51,"BD_fin","Positive","Private","Sustainable supply chains","agriculture",5.5,8.2,"billion USD","",2019,"low","biodiversity, food","biodiversity","food",NA,"Deutz 2020",6.85,"Paulson Institute et al.",2020
+45,"BD_fin","Positive","Mixed","Subsidies","water protection",26.9,26.9,"billion USD","",2019,"high","biodiversity, water, health (indirect, mention community livelihoods)","biodiversity","water","health","Deutz 2020",26.9,"Paulson Institute et al.",2020
+50,"BD_fin","Positive","Public","ODA","international (ODAs and other financial flows)",4,9.7,"billion USD","",2019,"unknown","unknown","unknown",NA,NA,"Deutz 2020",6.85,"Paulson Institute et al.",2020

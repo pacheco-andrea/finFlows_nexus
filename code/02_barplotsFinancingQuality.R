@@ -7,7 +7,7 @@
 # Part of work for Chapter 6 of the IPBES Nexus Assessment
 # Author: Andrea Pacheco
 # first run: Oct 5th 2023
-# last run: March 27th 2024
+# last run: April 2 2024
 
 library(dplyr)
 library(ggplot2)
@@ -302,4 +302,6 @@ plot_grid(sectorPlot, certaintyPlot, instrumentsPlot, nrow = 3,
           rel_widths = c(1,1,1.2), labels = c("A", "B", "C"), align = "hv")
 dev.off()
 
-
+# this data should also be written so that it can be used to make the treemaps
+setwd(paste0(wdmain, "data/"))
+write.csv(positiveData, "positiveFinancialFlows_clean.csv", row.names = F)

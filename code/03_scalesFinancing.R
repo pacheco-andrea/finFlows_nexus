@@ -14,8 +14,7 @@
 # 2. clean(er) bd financing table
 
 # pending issues: 
-# the raw monetary values need to be standardized/deflated to 2024
-
+# the raw monetary values need to be standardized/inflated to 2024
 
 # libraries
 library(dplyr)
@@ -28,10 +27,46 @@ library(treemap)
 
 # set directories
 wdmain <- "G:/My Drive/Projects/IPBES-Nexus/00_analyses/finFlows_nexus/"
+setwd(wdmain)
 
 # read clean(er) data to explore ranges of fin volumes
 bd_fin <- read.csv(paste0(wdmain, "data/BD_allFinanceFlows_simplified.csv"))
 head(bd_fin)
+
+# (not nature positive) but Financing to NbS
+positiveData <- read.csv("data/positiveFinancialFlows_clean.csv")
+
+positiveTreemapData <- positiveData %>% filter(Source == "UNEP 2023 SFN")
+positiveTreemapData$label <- NA
+
+positiveTreemapData$label[which(positiveTreemapData$Sector == "Private")] <- paste0(positiveTreemapData$Categ_instrmnt[which(positiveTreemapData$Sector == "Private")],
+                                                                                    " ($", positiveTreemapData$meanUSD_Y[which(positiveTreemapData$Sector == "Private")], "B)")
+positiveTreemapData$label[which(positiveTreemapData$Sector == "Public")] <- paste0(positiveTreemapData$Sector_econAct[which(positiveTreemapData$Sector == "Public")],
+                                                                                    " ($", positiveTreemapData$meanUSD_Y[which(positiveTreemapData$Sector == "Public")], "B)")
+
+setwd("G:/My Drive/Projects/IPBES-Nexus/00_analyses/finFlows_nexus/outputs/")
+png(filename = "posFlows.png", width = 30, height = 14, units = "cm", res = 300, bg = "white")
+
+treemap(positiveTreemapData,
+        index = c("Sector", "label"),
+        vSize = "meanUSD_Y", 
+        type = "index",
+        bg.labels=c("transparent"),
+        align.labels=list(
+          c("left", "top"), 
+          c("right", "bottom")),  
+        # position.legend = "right",
+        # reverse.legend = T,
+        border.col = "white",
+        border.lwds = c(1,.5,.05),
+        fontsize.labels = c(20,12),
+        fontcolor.labels ="gray20",
+        fontsize.title = 22,
+        palette = c("#C6D68A", "#D9AA80"),
+        overlap.labels=0.5,   # number between 0 and 1 that determines the tolerance of the overlap between labels. 0 means that labels of lower levels are not printed if higher level labels overlap, 1  means that labels are always printed. In-between values, for instance the default value .5, means that lower level labels are printed if other labels do not overlap with more than .5  times their area size.
+        title = "Public and private financing towards NbS (Billions USD/year)")
+
+dev.off()
 
 # treemap of all nature-neg activities ----
 
