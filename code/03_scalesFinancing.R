@@ -33,7 +33,8 @@ setwd(wdmain)
 bd_fin <- read.csv(paste0(wdmain, "data/BD_allFinanceFlows_simplified.csv"))
 head(bd_fin)
 
-# (not nature positive) but Financing to NbS
+#  treemap "nature positive" ----
+# note: actually should not say nature positive but rather financing to NbS according to 2023 SFN
 positiveData <- read.csv("data/positiveFinancialFlows_clean.csv")
 
 positiveTreemapData <- positiveData %>% filter(Source == "UNEP 2023 SFN")
@@ -70,59 +71,37 @@ dev.off()
 
 # treemap of all nature-neg activities ----
 
-# there are three main categories of negative flows: private, illegal, and public
-neg_flows <- bd_fin %>% filter(Categ_impact == "Negative")
-unique(neg_flows$Sector)
-neg_flows <- select(neg_flows, c("id", "Sector", "Categ_instrmnt", "Sector_econAct", "Value_lowerLim", "Value_upperLim",
-                                 "Unit..USD.YY.", "YearData", "NormalizedValue_YY", "HowNexusy", "HowNexusy1", "Source"))
-neg_flows_total <- neg_flows %>% filter(str_to_lower(Sector_econAct) == "total")
+# after the first version where I was piecing together several data sources, 
+# i believe it's best to simply report the UNEP 2023 estimates
+# they seem the most complete, researched and up to date
+# despite the fact that we're missing upper and lower ranges of estimates in this version of the SFN
+# therefore, 
+neg_flow <- bd_fin %>% filter(Categ_impact == "Negative", Source == "UNEP 2023 SFN") %>%
+  select(c("id", "Sector", "Categ_instrmnt", "Sector_econAct", "Value_lowerLim", "Value_upperLim", 
+            "YearData", "NormalizedValue_YY", "Source"))
+neg_flow <- neg_flow[which(neg_flow$Sector_econAct != "Total"),]
+neg_flow <- neg_flow[-grep("total", neg_flow$Sector_econAct),]
+neg_flow %>%
+  summarize(total = sum(Value_lowerLim))
 
+# this means that the total of all negative glows according to UNEP 2023 is 6.5 trillion (the almost 7 that they report) 
 
-# private flows: 
-# filter for only portfolio earth calculations (see description of Dasgupta estimate in raw data table)
-neg_priv <- bd_fin %>%
-  filter(Categ_impact == "Negative", Source == "Portfolio Earth 2020", Sector_econAct != "total")
-# illegal flows:
-# should have the estimate which is all environmental crimes (not just illegal wildlife trade)
+# However, I do want to supplement these estimates with the illegal flows estimated 
+# which are the following:
 neg_illeg <- bd_fin %>%
-  filter(Categ_impact == "Negative", Source == "OECD 2021, based on Nellemann et al., 2018")
-# public flows:
-test <- bd_fin %>%
-  filter(Categ_impact == "Negative", Sector == "Public")
-plot(test$Value_upperLim)
-# as seen here, these estimates vary a LOT, and they repeat across sectors of economic activity. 
-# Therefore, I prioritized which observations to report based on the following: 
-# 1. I know that i definitely want to keep the UNEP 2022 estimates because according to my review, these were the most recent and reliable estimates
-# 2. Specifically for agriculture: use the UNEP 2022 figs because lower and upper bounds are very similar to all other estimates from other sources. 
-  # The only exception is the estimate from the OECD which estimates 800 billion. but this includes both ag and fossil fuels, so it makes sense to omit this aggregated number 
-# forestry: from 28-55 (Deutz) to 155 (koplow). the latter is not technically a subsidy from what i understood - it's just how they categorized illegal flows. Therefore, I choose to use Deutz.
-# Speciically for the (energy?) & fossil fuels sector: 
-# these were the widest variations in estimates: from 340-530B (UNEP 2022) to 5300B (Coady 2017) or 7000B (IMF). 
-# The latter two include estimates of the "harms" caused rather than direct costs. I think this would be better explained in the text than visualized.
-  # Therefore, I prioritizsed using the UNEP 2022 estimates because they include lower and upper estimates (upper estimates which are similar to other estimates)
-# I keep estimates for construction, water, and transport: as only the Koplow study estimated these. 
-
-# can i make a smarter prioritization that 1) account for 2023, which are many repeated numbers, but 2) also visualizes the wide range of estimates?
-
-# build table accordingly to these priorities:
-a <- neg_flow[which(neg_flow$Sector == "Public" & neg_flow$Source == "UNEP 2022 (State of Finance)"),]
-b <- neg_flow[which(neg_flow$Sector_econAct == "construction" | neg_flow$Sector_econAct == "water"| neg_flow$Sector_econAct == "transport" & neg_flow$Sector == "Public"),]
-c <- neg_flow[which(neg_flow$Sector == "Public" & neg_flow$Sector_econAct == "forestry" & neg_flow$Source == "Deutz 2020"),]
-neg_pub <- rbind(a,b,c)
-nrow(neg_pub)
-
-test2 <- bd_fin %>%
-  filter(Categ_impact == "Negative", Sector == "Public", Sector_econAct == c(""))
-
-
+  filter(Categ_impact == "Negative") %>%
+  select(c("id", "Sector", "Categ_instrmnt", "Sector_econAct", "Value_lowerLim", "Value_upperLim", 
+           "YearData", "NormalizedValue_YY", "Source"))
+neg_illeg <- neg_illeg[grep("Illegal", neg_illeg$Categ_instrmnt),]
 
 # make table with all negative flows
-neg_flow_clean <- rbind(neg_priv, neg_pub, neg_illeg)
+neg_flow_clean <- rbind(neg_flow, neg_illeg)
 nrow(neg_flow_clean)
 neg_flow_clean
 
 # create mean value for plotting
-neg_flow_clean$mValue <- rowMeans(cbind(neg_flow_clean$Value_lowerLim, neg_flow_clean$Value_upperLim))
+neg_flow_clean$mValue <- rowMeans(cbind(neg_flow_clean$Value_lowerLim, neg_flow_clean$Value_upperLim), na.rm = T)
+
 # create a label that will allow me to paste the range in values, but specify if condition for only when there is a range
 neg_flow_clean$label <- NA
 makeLabelWithLims <- function(table, labelName){
@@ -131,14 +110,20 @@ makeLabelWithLims <- function(table, labelName){
   for(i in 1:nrow(table))
   {
     labels[i] <- paste0(table[i,n],
-                        if(table$Value_lowerLim[i] < table$Value_upperLim[i]){
-                          paste0(" (", table$Value_lowerLim[i], "-", table$Value_upperLim[i], " B)")
-                          }else{paste0(" (", table$mValue[i], " B)")},
+                        if(table$Value_lowerLim[i] < table$Value_upperLim[i], 
+                           
+                           
+                           na.rm = T){
+                          paste0(" ($", table$Value_lowerLim[i], "-", table$Value_upperLim[i], " B)")
+                        }else{paste0(" ($", table$mValue[i], " B)")},
                         sep = "\n")
   }
   return(labels)
 }
 neg_flow_clean$label <- makeLabelWithLims(neg_flow_clean, "Sector_econAct")
+
+
+# need 5 colors
 
 # write out treemap
 # setwd("G:/My Drive/Projects/IPBES-Nexus/analyses/fin_flows/outputs/")
