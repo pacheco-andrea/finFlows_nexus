@@ -75,7 +75,7 @@ treemap(positiveTreemapData,
 dev.off()
 
 setwd("G:/My Drive/Projects/IPBES-Nexus/00_analyses/finFlows_nexus/outputs/")
-png(filename = "posFlows_versionLabels.png", width = 30, height = 18, units = "cm", res = 300, bg = "white")
+png(filename = "posFlows_versionLabels.png", width = 32, height = 22, units = "cm", res = 300, bg = "white")
 
 treemap(positiveTreemapData,
         index = c("Sector", "label"),
@@ -89,11 +89,11 @@ treemap(positiveTreemapData,
         # reverse.legend = T,
         border.col = "gray20",
         border.lwds = c(1,.5,.05),
-        fontsize.labels = c(18,12),
+        fontsize.labels = c(22,14),
         fontcolor.labels ="gray20",
         fontsize.title = 22,
         palette = c("#C6D68A", "#D9AA80"),
-        force.print.labels = T, 
+        # force.print.labels = T, 
         overlap.labels=0.5,   # number between 0 and 1 that determines the tolerance of the overlap between labels. 0 means that labels of lower levels are not printed if higher level labels overlap, 1  means that labels are always printed. In-between values, for instance the default value .5, means that lower level labels are printed if other labels do not overlap with more than .5  times their area size.
         title = "Public and private financing towards NbS (Billions USD/year)")
 
@@ -236,7 +236,7 @@ allFlows2$color[which(allFlows2$Categ_impact == "Negative" & allFlows2$Sector ==
 allFlows2$color <- as.factor(allFlows2$color)
 
 setwd("G:/My Drive/Projects/IPBES-Nexus/00_analyses/finFlows_nexus/outputs/")
-png(filename = "summaryAllFlows.png",  width = 30, height = 18, units = "cm", res = 300, bg = "white")
+png(filename = "summaryAllFlows_versionLabels.png",  width = 32, height = 22, units = "cm", res = 300, bg = "white")
 
 treemap(allFlows2, 
         index = c("Categ_impact", "Sector", "label"), # the order determines groups and subgroups
@@ -248,20 +248,49 @@ treemap(allFlows2,
           c("left", "top"),
           c("left", "top"), 
           c("right", "bottom")),
-        ymod.labels = c(5,0,0),
+        ymod.labels = c(0,-.4,-0.01),
         position.legend = "none",
         border.col = "gray20",
         border.lwds = c(1,.5,.05),
-        fontsize.labels = c(18,15,12),
+        fontsize.labels = c(22,15,12),
         fontcolor.labels ="gray20",
         fontsize.title = 22,
         force.print.labels = T,
         # fontsize.legend = 22,
         # palette = c("#D9AA80", "#196C71"),
-        palette = c("#EDD018","#C3773E", "#D9AA80", "#4A928F"), #, "#4D2D71", "#696B5F", "#FFFFFF"),
+        palette = c("#F9E855", "#D9AA80","#C3773E",  "#C6D68A"), #, "#4D2D71", "#696B5F", "#FFFFFF"),
         overlap.labels=0.5,   
         title = "Scale of annual nature-negative and nature-positive financing (Billions USD)")
 
 dev.off()
 
+# version with empty labels
+setwd("G:/My Drive/Projects/IPBES-Nexus/00_analyses/finFlows_nexus/outputs/")
+svg(filename = "summaryAllFlows_versionTranslation.svg", width = 7, height = 4, bg = "white")
+
+treemap(allFlows2, 
+        index = c("Categ_impact", "Sector", "label"), # the order determines groups and subgroups
+        vSize = "meanUSD_Y",
+        vColor = "color",
+        type = "categorical",
+        bg.labels=c("transparent"),
+        align.labels=list(
+          c("left", "top"),
+          c("left", "top"), 
+          c("right", "bottom")),
+        ymod.labels = c(0,-.2,0),
+        position.legend = "none",
+        border.col = "black",
+        border.lwds = c(1,.08,.07),
+        fontsize.labels = c(18,15,12),
+        fontcolor.labels ="transparent",
+        fontsize.title = 22,
+        force.print.labels = T,
+        # fontsize.legend = 22,
+        # palette = c("#D9AA80", "#196C71"),
+        palette = c("#F9E855", "#D9AA80","#C3773E",  "#C6D68A"), #, "#4D2D71", "#696B5F", "#FFFFFF"),
+        overlap.labels=0.5,   
+        title = " ")
+
+dev.off()
 
