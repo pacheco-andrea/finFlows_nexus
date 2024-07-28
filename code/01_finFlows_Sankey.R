@@ -193,6 +193,4 @@ posFlowSankey_SPM <- sankeyNetwork(Links = as.data.frame(sankeyData2), Nodes = m
 posFlowSankey_SPM
 
 setwd("G:/My Drive/Projects/IPBES-Nexus/00_analyses/finFlows_nexus/outputs/")
-saveWidget(posFlowSankey, file = "BDFin_positiveFlows_simplified4SPM.html")
-
-  
+saveWidget(posFlowSankey_SPM, file = "BDFin_positiveFlows_simplified4SPM.html")
