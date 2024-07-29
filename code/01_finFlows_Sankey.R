@@ -21,8 +21,6 @@ library(webshot2)
 
 
 # pending issues:
-# how to export to png: https://r-graph-gallery.com/159-save-interactive-streamgraph-to-static-image-png.html
-# or not png according to new guidelines?
 
 # set directories
 wdmain <- "G:/My Drive/Projects/IPBES-Nexus/00_analyses/finFlows_nexus/"
@@ -32,7 +30,6 @@ setwd(paste0(wdmain))
 # source(paste0(wdmain, "code/00_makeData.R"))
 
 # read clean(er) data to explore ranges of fin volumes
-data <- read.csv(paste0(wdmain, "data/BD_allFinanceFlows_simplified.csv"))
 data <- read.csv(paste0(wdmain, "data/BD_allFinanceFlows_nexus.csv"))
 head(data)
 data <- select(data, c("Categ_impact", "Sector", "Categ_instrmnt", "Sector_econAct", "Value_lowerLim",
@@ -205,3 +202,63 @@ Sys.setenv(CHROMOTE_CHROME = "C:/Users/apacheco/AppData/Local/Google/Chrome/Appl
 webshot2::webshot("BDFin_positiveFlows_simplified4SPM.html", file = "BDFin_positiveFlows_simplified4SPM.png",
                   vwidth = 1500, vheight = 3000, zoom = 4) # the resolution is controlled via the zoom function
 
+
+# even simpler version james wants for panel C ----
+data3 <- pos_data %>% select(c("HowNexusy", "HowNexusy1", "HowNexusy2", "mValue")) 
+# replace the unknown category with
+data3$HowNexusy <- str_to_title(data3$HowNexusy)
+data3$HowNexusy1 <- str_to_title(data3$HowNexusy1)
+data3$HowNexusy2 <- str_to_title(data3$HowNexusy2)
+data3$HowNexusy <- gsub("Unknown", "Undisclosed/Unclear", data3$HowNexusy)
+
+# summarize the data (sum of $ per category) 
+
+data4 <- data3 %>% group_by(HowNexusy, HowNexusy1, HowNexusy2) %>%
+  summarize(mvalue = sum(mValue))
+
+# manipulate data for factors
+data4$nexus <- "nexus element"
+data4$nexus2 <- gsub("_NA", "", paste0(data4$HowNexusy,"_", data4$HowNexusy1, "_", data4$HowNexusy2))
+data4$nexus2 <- factor(data4$nexus2, 
+                       levels = c("Undisclosed/Unclear",
+                                  "Climate",
+                                  "Water",
+                                  "Health_Biodiversity",
+                                  "Food_Biodiversity_Water",
+                                  "Food_Biodiversity",
+                                  "Biodiversity"))
+# add colors
+ipbesCols3 <- c("Undisclosed/Unclear" = "#696B5F",
+                "Climate" = "#BAB0C9",
+                "Water" = "#4A928F",
+                "Health_Biodiversity" = "#791E32",
+                "Food_Biodiversity_Water" = "#799336",
+                "Food_Biodiversity" = "#B65719",
+                "Biodiversity"= "#C6D68A")
+  
+# write out version with labels so we know what's what
+setwd("G:/My Drive/Projects/IPBES-Nexus/00_analyses/finFlows_nexus/outputs/")
+
+svg(filename = "SPM_nexyFinance_withLabels.svg", width = 12, height = 3, bg = "transparent")
+data4 %>% 
+ggplot(aes(nexus, mvalue, fill = nexus2)) +
+  geom_bar(stat = "identity", position = "stack") +
+  scale_fill_manual(values = ipbesCols3) +
+  coord_flip() +
+  labs( y = "$ Billions", fill = "nexus elements") +
+  geom_text(aes(label = paste0("$", mvalue)), position = position_stack(vjust = 0.5), color = "black") +  # Add labels on top of the bars
+  theme(panel.background = element_blank(), panel.grid = element_blank(),
+        axis.text.y = element_blank(), axis.title.y = element_blank(), axis.ticks.y = element_blank())
+dev.off()
+
+svg(filename = "SPM_nexyFinance_noLabels.svg", width = 12, height = 3, bg = "transparent")
+data4 %>% 
+  ggplot(aes(nexus, mvalue, fill = nexus2)) +
+  geom_bar(stat = "identity", position = "stack") +
+  scale_fill_manual(values = ipbesCols3) +
+  coord_flip() +
+  labs(x = element_blank(), y = element_blank(), fill = element_blank()) +
+  # geom_text(aes(label = paste0("$", mvalue)), position = position_stack(vjust = 0.5), color = "black") +  # Add labels on top of the bars
+  theme(panel.background = element_blank(), panel.grid = element_blank(), legend.position = "none",
+        axis.text = element_blank(), axis.title.y = element_blank(), axis.ticks.y = element_blank())
+dev.off()
