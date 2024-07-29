@@ -17,6 +17,7 @@ library(tidyverse)
 library(networkD3)
 library(ggplot2)
 library(htmlwidgets)
+library(webshot2)
 
 
 # pending issues:
@@ -187,10 +188,20 @@ posFlowSankey_SPM <- sankeyNetwork(Links = as.data.frame(sankeyData2), Nodes = m
                                Source = "IDsource", Target = "IDtarget",
                                Value = "value", NodeID = "name", 
                                units = "$ Billions", sinksRight=FALSE, 
-                               fontFamily = "sans-serif", fontSize=20,
+                               fontFamily = "sans-serif", fontSize=0,
                                NodeGroup = "group", colourScale = ipbesCols2, 
-                               nodeWidth=40, nodePadding=10, height = 500, width = 1500)
+                               nodeWidth=40, nodePadding=10, height = 1500, width = 3000,
+                               sinksRight = F)
 posFlowSankey_SPM
 
 setwd("G:/My Drive/Projects/IPBES-Nexus/00_analyses/finFlows_nexus/outputs/")
-saveWidget(posFlowSankey_SPM, file = "BDFin_positiveFlows_simplified4SPM.html")
+saveWidget(posFlowSankey_SPM, file = "BDFin_positiveFlows_simplified4SPM.html", selfcontained = F)
+
+# export as svg
+webshot2::webshot("BDFin_positiveFlows_simplified4SPM.html", file = "test.svg", selector = "body") # doesn't work
+# Set the environment variable
+Sys.setenv(CHROMOTE_CHROME = "C:/Users/apacheco/AppData/Local/Google/Chrome/Application/chrome.exe")
+# export as png
+webshot2::webshot("BDFin_positiveFlows_simplified4SPM.html", file = "BDFin_positiveFlows_simplified4SPM.png",
+                  vwidth = 1500, vheight = 3000, zoom = 4) # the resolution is controlled via the zoom function
+
