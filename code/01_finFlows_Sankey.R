@@ -251,6 +251,18 @@ ggplot(aes(nexus, mvalue, fill = nexus2)) +
         axis.text.y = element_blank(), axis.title.y = element_blank(), axis.ticks.y = element_blank())
 dev.off()
 
+png(filename = "SPM_nexyFinance_withLabels.png", width = 1200, height = 300, bg = "transparent")
+data4 %>% 
+  ggplot(aes(nexus, mvalue, fill = nexus2)) +
+  geom_bar(stat = "identity", position = "stack") +
+  scale_fill_manual(values = ipbesCols3) +
+  coord_flip() +
+  labs( y = "$ Billions", fill = "nexus elements") +
+  geom_text(aes(label = paste0("$", mvalue)), position = position_stack(vjust = 0.5), color = "black") +  # Add labels on top of the bars
+  theme(panel.background = element_blank(), panel.grid = element_blank(),
+        axis.text.y = element_blank(), axis.title.y = element_blank(), axis.ticks.y = element_blank())
+dev.off()
+
 svg(filename = "SPM_nexyFinance_noLabels.svg", width = 12, height = 3, bg = "transparent")
 data4 %>% 
   ggplot(aes(nexus, mvalue, fill = nexus2)) +
