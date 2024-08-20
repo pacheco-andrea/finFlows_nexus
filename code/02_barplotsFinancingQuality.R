@@ -177,7 +177,7 @@ totalsSummarizedPlot <- totalsSummarized %>%
   geom_col(position = "dodge") +
   geom_errorbar(data = totalsSummarized[which(totalsSummarized$totalUSD_L < totalsSummarized$totalUSD_U),],
                 aes(ymin = totalUSD_L  , ymax = totalUSD_U   ), color = "gray25", width = 0.2, position = position_dodge(width = 0.7)) +
-  labs(title = "Estimated financial flows to Nature by source", x = element_blank(), y = "USD Billions annually") +
+  labs(title = "Estimated financial flows to Nature by source", x = element_blank(), y = "$ Billions annually") +
   scale_fill_manual(values = c("Private" = "#A0AF67", "Public" = "#C3773E", "Mixed" = "#8B78A1")) +  
   theme(panel.background = element_rect(fill = "white"), panel.grid = element_line(colour = "gray80"))+
   facet_wrap(~Source)
@@ -214,7 +214,7 @@ sectorPlot <- sectorPlotData  %>%
   # the error bars need to be the sum of the rows that fulfill those conditions
   geom_errorbar(data = sectorPlotData[which(sectorPlotData$Value_lowerLim  < sectorPlotData$Value_upperLim),],
                 aes(ymin = Value_lowerLim, ymax = Value_upperLim), color = "gray25", width = 0.2, position = position_dodge(width = 0.8)) +
-  labs(title = "Estimated financial flows to Nature by source", x = element_blank(), y = "USD Billions annually") +
+  labs(title = "Estimated financial flows to Nature by source", x = element_blank(), y = "$ Billions annually") +
   # scale_x_continuous(breaks = c(2019, 2020, 2021, 2022, 2023)) +
   # coord_cartesian(xlim = c(2020, 2023)) +
   scale_fill_manual(values = c("Private" = "#A0AF67", "Public" = "#C3773E", "Mixed" = "#8B78A1")) +  # Custom fill colors
@@ -242,7 +242,7 @@ certaintyPlotData$Certainty <- factor(certaintyPlotData$Certainty, levels = c("q
 certaintyPlot <-  certaintyPlotData %>%
   ggplot(aes(x = Year2, y = meanUSD_Y, fill = Certainty)) +
   geom_col() +
-  labs(title = "Reported certainty levels for estimated financial flows to Nature", x = element_blank(), y = "USD Billions annually") +
+  labs(title = "Reported certainty levels for estimated financial flows to Nature", x = element_blank(), y = "$ Billions annually") +
   scale_fill_manual(values = c("low" = "#B65719", "medium" = "#D9AA80", "high" = "#F9E855", "unknown" = "#ACABA4", "quantified" = "#D5B41F")) +  
   # scale_x_continuous(breaks = c(2019, 2020, 2021, 2022, 2023)) +
   # coord_cartesian(xlim = c(2020, 2023)) +
@@ -255,37 +255,43 @@ svg(filename = "EstimatedFinancialFlowsbyCertainty.svg", width = 12, height = 4)
 certaintyPlot
 dev.off()
 
+# EDITS to CATEGORIES OF INSTRUMENTS 20.08.2024 ----
 
-# some manual editing of the categories of instruments to aggregate a bit
-positiveData$Categ_instrmnt <- gsub("Domestic budgets/Taxes", "Taxes", positiveData$Categ_instrmnt)
+positiveData[which(positiveData$Categ_instrmnt == "Domestic budgets/Taxes"),] # only that one from Paulson institute
+positiveData$Categ_instrmnt <- gsub("Domestic budgets/Taxes", "Domestic budgets", positiveData$Categ_instrmnt)
 positiveData$Categ_instrmnt <- gsub("Government support/subsidies", "Subsidies", positiveData$Categ_instrmnt)
 positiveData$Categ_instrmnt <- gsub("Green bonds/loans", "Green bonds", positiveData$Categ_instrmnt)
 positiveData$Categ_instrmnt <- gsub("Multiple", "Other", positiveData$Categ_instrmnt)
-positiveData$Categ_instrmnt <- gsub("Voluntary carbon markets", "Carbon markets", positiveData$Categ_instrmnt)
+positiveData$Categ_instrmnt <- gsub("Voluntary carbon markets", "Ecosystem services markets\n(including carbon)", positiveData$Categ_instrmnt)
+positiveData$Categ_instrmnt <- gsub("Carbon markets", "Ecosystem services markets\n(including carbon)", positiveData$Categ_instrmnt)
+positiveData$Categ_instrmnt <- gsub("PES", "Ecosystem services markets\n(including carbon)", positiveData$Categ_instrmnt)
+positiveData$Categ_instrmnt <- gsub("International budgets", "ODA", positiveData$Categ_instrmnt)
+positiveData$Categ_instrmnt <- gsub("Private equity impact spending", "Impact investment", positiveData$Categ_instrmnt)
+length(unique(positiveData$Categ_instrmnt))
 
 instrumentsPlotData <- positiveData %>%
   group_by(Source2, Year2, Categ_instrmnt) %>%
   summarize(meanUSD_Y = sum(meanUSD_Y), Value_lowerLim = sum(Value_lowerLim), Value_upperLim = sum(Value_upperLim))
+instrumentsPlotData$Categ_instrmnt
 
 my_nx_col <- c("#C6D68A","#C3773E","#799336",     
                "#196C71","#4A928F","#A7C6C5",     
                "#4D2D71","#8B78A1","#BAB0C9",    
-               "#791E32","#d14765","#ACABA4",
-               "#D5B41F","#EDD018","#D9AA80",
-               "#B65719", "#F9E855","#f0c2cc") 
+               "#791E32","#ACABA4","#EDD018",
+               "#d14765","#D9AA80","#f0c2cc") 
 
 # could make the the categories a factor that would be ordered by the size of financing - but leave this for later
 
 instrumentsPlot <-  instrumentsPlotData %>%
   ggplot(aes(x = Year2, y = meanUSD_Y, fill = Categ_instrmnt)) +
   geom_col() +
-  labs(title = "Estimated financial flows to Nature disaggregated by instrument", x = element_blank(), y = "USD Billions annually") +
+  labs(title = "Estimated financial flows to Nature disaggregated by instrument", x = element_blank(), y = "$ Billions annually", fill = "Instrument") +
   scale_fill_manual(values = my_nx_col) +  
   # scale_x_continuous(breaks = c(2019, 2020, 2021, 2022, 2023)) +
   # coord_cartesian(xlim = c(2020, 2023)) +
   theme(panel.background = element_rect(fill = "white"), panel.grid = element_line(colour = "gray80"))+
   facet_wrap(~Source2)
-instrumentsPlot
+instrumentsPlot 
 
 # write out 
 setwd(paste0(wdmain, "outputs/"))
