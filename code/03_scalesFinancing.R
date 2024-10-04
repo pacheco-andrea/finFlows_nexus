@@ -47,9 +47,9 @@ positiveTreemapData$Categ_instrmnt <- gsub("Philanthropy/NGOs", "Philanthropy/ N
   
 positiveTreemapData$label <- NA
 positiveTreemapData$label[which(positiveTreemapData$Sector == "Private")] <- paste0(positiveTreemapData$Categ_instrmnt[which(positiveTreemapData$Sector == "Private")],
-                                                                                    " ($", positiveTreemapData$meanUSD_Y[which(positiveTreemapData$Sector == "Private")], "B)")
+                                                                                    " ($", positiveTreemapData$meanUSD_Y[which(positiveTreemapData$Sector == "Private")], ")")
 positiveTreemapData$label[which(positiveTreemapData$Sector == "Public")] <- paste0(positiveTreemapData$Sector_econAct[which(positiveTreemapData$Sector == "Public")],
-                                                                                    " ($", positiveTreemapData$meanUSD_Y[which(positiveTreemapData$Sector == "Public")], "B)")
+                                                                                    " ($", positiveTreemapData$meanUSD_Y[which(positiveTreemapData$Sector == "Public")], ")")
 
 setwd("G:/My Drive/Projects/IPBES-Nexus/00_analyses/finFlows_nexus/outputs/")
 svg(filename = "posFlows_versionTranslation.svg", width = 7, height = 3.5, bg = "white")
@@ -75,6 +75,31 @@ treemap(positiveTreemapData,
 dev.off()
 
 setwd("G:/My Drive/Projects/IPBES-Nexus/00_analyses/finFlows_nexus/outputs/")
+svg(filename = "posFlows_versionLabels_TOEDITMANUALLY.svg", width = 7, height = 4, bg = "white")
+
+treemap(positiveTreemapData,
+        index = c("Sector", "label"),
+        vSize = "meanUSD_Y", 
+        type = "index",
+        bg.labels=c("transparent"),
+        align.labels=list(
+          c("left", "top"), 
+          c("right", "bottom")),  
+        # position.legend = "right",
+        # reverse.legend = T,
+        border.col = "gray20",
+        border.lwds = c(1,.5,.05),
+        fontsize.labels = c(22,14),
+        fontcolor.labels ="gray20",
+        fontsize.title = 22,
+        palette = c("#C6D68A", "#D9AA80"),
+        # force.print.labels = T, 
+        overlap.labels=0.5,   # number between 0 and 1 that determines the tolerance of the overlap between labels. 0 means that labels of lower levels are not printed if higher level labels overlap, 1  means that labels are always printed. In-between values, for instance the default value .5, means that lower level labels are printed if other labels do not overlap with more than .5  times their area size.
+        title = "Public and private financing towards NbS (billions USD/year)")
+
+dev.off()
+
+setwd("G:/My Drive/Projects/IPBES-Nexus/00_analyses/finFlows_nexus/outputs/")
 png(filename = "posFlows_versionLabels.png", width = 32, height = 22, units = "cm", res = 300, bg = "white")
 
 treemap(positiveTreemapData,
@@ -95,7 +120,7 @@ treemap(positiveTreemapData,
         palette = c("#C6D68A", "#D9AA80"),
         # force.print.labels = T, 
         overlap.labels=0.5,   # number between 0 and 1 that determines the tolerance of the overlap between labels. 0 means that labels of lower levels are not printed if higher level labels overlap, 1  means that labels are always printed. In-between values, for instance the default value .5, means that lower level labels are printed if other labels do not overlap with more than .5  times their area size.
-        title = "Public and private financing towards NbS (Billions USD/year)")
+        title = "Public and private financing towards NbS (billions USD/year)")
 
 dev.off()
 # treemap of all nature-neg activities ----
@@ -143,8 +168,8 @@ makeLabelWithLims <- function(table, labelName){
   {
     labels[i] <- paste0(table[i,n],
                         if(table$Value_lowerLim[i] < table$Value_upperLim[i]){
-                          paste0(" ($", table$Value_lowerLim[i], "-", table$Value_upperLim[i], " B)")
-                        }else{paste0(" ($", table$meanUSD_Y[i], " B)")},
+                          paste0(" ($", table$Value_lowerLim[i], "-", table$Value_upperLim[i], ")")
+                        }else{paste0(" ($", table$meanUSD_Y[i], ")")},
                         sep = "\n")
   }
   return(labels)
@@ -165,7 +190,7 @@ treemap(negativeTreemapData,
         fontsize.title = 16,
         palette = "YlOrRd",
         overlap.labels=0.5,   
-        title = "Annual public and private financial support for nature-negative activities (Billions USD)")
+        title = "Annual public and private financial support for nature-negative activities (billions USD)")
 
 
 # treemap positive and negative financial flows ----
@@ -199,7 +224,7 @@ treemap(allFlows,
         palette = list("Categ_impact" = c("Negative"= "#D9AA80", "Positive"= "#4A928F"),
                        "Sector" = c("Public"= "#BAB0C9", "Private"= "#C6D68A", "Other" = "yellow")),
         overlap.labels=0.5,   
-        title = "Scale of annual nature-negative and nature-positive financing (Billions USD)")
+        title = "Scale of annual nature-negative and nature-positive financing (billions USD)")
 # because positive flows are so much smaller than negative flows, 
 # plotting the small details of the different instruments via which private flows are dispersed doesn't make sense 
 # these details will be unreadable in the treemap
@@ -222,7 +247,7 @@ positiveTreemapData2 <- data.frame(matrix(ncol = ncol(positiveTreemapData), nrow
 names(positiveTreemapData2) <- names(positiveTreemapData)
 positiveTreemapData2 <- right_join(positiveTreemapData2, as.data.frame(positiveTreemapData %>%  group_by(Sector) %>%  summarize(meanUSD_Y = sum(meanUSD_Y))))
 # add the label once again
-positiveTreemapData2$label <- paste0(" ($", positiveTreemapData2$meanUSD_Y, "B)") # dont need to add the category
+positiveTreemapData2$label <- paste0(" ($", positiveTreemapData2$meanUSD_Y, ")") # dont need to add the category
 positiveTreemapData2$Categ_impact <- "Positive"
 colnames(positiveTreemapData) == colnames(negativeTreemapData)
 allFlows2 <- rbind(positiveTreemapData2, negativeTreemapData)
@@ -234,6 +259,9 @@ allFlows2$color[which(allFlows2$Categ_impact == "Negative" & allFlows2$Sector ==
 allFlows2$color[which(allFlows2$Categ_impact == "Negative" & allFlows2$Sector == "Public")] <- "neg-pub"
 allFlows2$color[which(allFlows2$Categ_impact == "Negative" & allFlows2$Sector == "Other")] <- "neg-oth"
 allFlows2$color <- as.factor(allFlows2$color)
+
+# replace "other" with "illegal
+allFlows2$Sector <- gsub("Other", "Illegal", allFlows2$Sector)
 
 setwd("G:/My Drive/Projects/IPBES-Nexus/00_analyses/finFlows_nexus/outputs/")
 png(filename = "summaryAllFlows_versionLabels.png",  width = 32, height = 22, units = "cm", res = 300, bg = "white")
@@ -260,7 +288,7 @@ treemap(allFlows2,
         # palette = c("#D9AA80", "#196C71"),
         palette = c("#F9E855", "#D9AA80","#C3773E",  "#C6D68A"), #, "#4D2D71", "#696B5F", "#FFFFFF"),
         overlap.labels=0.5,   
-        title = "Scale of annual nature-negative and nature-positive financing (Billions USD)")
+        title = "Scale of annual nature-negative and nature-positive financing (billions USD)")
 
 dev.off()
 
@@ -294,3 +322,32 @@ treemap(allFlows2,
 
 dev.off()
 
+# version for manually fixing labels
+setwd("G:/My Drive/Projects/IPBES-Nexus/00_analyses/finFlows_nexus/outputs/")
+svg(filename = "summaryAllFlows_versionManualLabels.svg", width = 14, height = 10, bg = "white")
+
+treemap(allFlows2, 
+        index = c("Categ_impact", "Sector", "label"), # the order determines groups and subgroups
+        vSize = "meanUSD_Y",
+        vColor = "color",
+        type = "categorical",
+        bg.labels=c("transparent"),
+        align.labels=list(
+          c("left", "top"),
+          c("left", "top"), 
+          c("right", "bottom")),
+        ymod.labels = c(0,-.4,-0.01),
+        position.legend = "none",
+        border.col = "gray20",
+        border.lwds = c(1,.5,.05),
+        fontsize.labels = c(22,15,12),
+        fontcolor.labels ="gray20",
+        fontsize.title = 22,
+        force.print.labels = T,
+        # fontsize.legend = 22,
+        # palette = c("#D9AA80", "#196C71"),
+        palette = c("#F9E855", "#D9AA80","#C3773E",  "#C6D68A"), #, "#4D2D71", "#696B5F", "#FFFFFF"),
+        overlap.labels=0.5,   
+        title = "Scale of annual nature-negative and nature-positive financing (billions USD)")
+
+dev.off()

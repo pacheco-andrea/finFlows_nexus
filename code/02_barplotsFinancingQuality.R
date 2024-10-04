@@ -177,7 +177,7 @@ totalsSummarizedPlot <- totalsSummarized %>%
   geom_col(position = "dodge") +
   geom_errorbar(data = totalsSummarized[which(totalsSummarized$totalUSD_L < totalsSummarized$totalUSD_U),],
                 aes(ymin = totalUSD_L  , ymax = totalUSD_U   ), color = "gray25", width = 0.2, position = position_dodge(width = 0.7)) +
-  labs(title = "Estimated financial flows to Nature by source", x = element_blank(), y = "$ Billions annually") +
+  labs(title = "Estimated financial flows to nature by source", x = element_blank(), y = "$ billions annually") +
   scale_fill_manual(values = c("Private" = "#A0AF67", "Public" = "#C3773E", "Mixed" = "#8B78A1")) +  
   theme(panel.background = element_rect(fill = "white"), panel.grid = element_line(colour = "gray80"))+
   facet_wrap(~Source)
@@ -214,7 +214,7 @@ sectorPlot <- sectorPlotData  %>%
   # the error bars need to be the sum of the rows that fulfill those conditions
   geom_errorbar(data = sectorPlotData[which(sectorPlotData$Value_lowerLim  < sectorPlotData$Value_upperLim),],
                 aes(ymin = Value_lowerLim, ymax = Value_upperLim), color = "gray25", width = 0.2, position = position_dodge(width = 0.8)) +
-  labs(title = "Estimated financial flows to Nature by source", x = element_blank(), y = "$ Billions annually") +
+  labs(title = "Estimated financial flows to nature by source", x = element_blank(), y = "$ billions annually") +
   # scale_x_continuous(breaks = c(2019, 2020, 2021, 2022, 2023)) +
   # coord_cartesian(xlim = c(2020, 2023)) +
   scale_fill_manual(values = c("Private" = "#A0AF67", "Public" = "#C3773E", "Mixed" = "#8B78A1")) +  # Custom fill colors
@@ -242,7 +242,7 @@ certaintyPlotData$Certainty <- factor(certaintyPlotData$Certainty, levels = c("q
 certaintyPlot <-  certaintyPlotData %>%
   ggplot(aes(x = Year2, y = meanUSD_Y, fill = Certainty)) +
   geom_col() +
-  labs(title = "Reported certainty levels for estimated financial flows to Nature", x = element_blank(), y = "$ Billions annually") +
+  labs(title = "Reported certainty levels for estimated financial flows to nature", x = element_blank(), y = "$ billions annually") +
   scale_fill_manual(values = c("low" = "#B65719", "medium" = "#D9AA80", "high" = "#F9E855", "unknown" = "#ACABA4", "quantified" = "#D5B41F")) +  
   # scale_x_continuous(breaks = c(2019, 2020, 2021, 2022, 2023)) +
   # coord_cartesian(xlim = c(2020, 2023)) +
@@ -285,7 +285,7 @@ my_nx_col <- c("#C6D68A","#C3773E","#799336",
 instrumentsPlot <-  instrumentsPlotData %>%
   ggplot(aes(x = Year2, y = meanUSD_Y, fill = Categ_instrmnt)) +
   geom_col() +
-  labs(title = "Estimated financial flows to Nature disaggregated by instrument", x = element_blank(), y = "$ Billions annually", fill = "Instrument") +
+  labs(title = "Estimated financial flows to nature disaggregated by instrument", x = element_blank(), y = "$ billions annually", fill = "Instrument") +
   scale_fill_manual(values = my_nx_col) +  
   # scale_x_continuous(breaks = c(2019, 2020, 2021, 2022, 2023)) +
   # coord_cartesian(xlim = c(2020, 2023)) +
@@ -302,11 +302,25 @@ dev.off()
 
 # One large graph with all three views on these data: ----
 setwd(paste0(wdmain, "outputs/"))
-png(filename = "DataQualityPlot.png", res = 300, width = 32, height = 37, units = "cm")
+png(filename = "DataQualityPlot.png", res = 300, width = 32, height = 35, units = "cm")
 
 plot_grid(sectorPlot, certaintyPlot, instrumentsPlot, nrow = 3, 
           rel_widths = c(1,1,1.2), labels = c("A", "B", "C"), align = "hv")
 dev.off()
+
+svg(filename = "DataQualityPlot.svg",  width = 12, height = 13, pointsize = 12)
+
+plot_grid(sectorPlot, certaintyPlot, instrumentsPlot, nrow = 3, 
+          rel_widths = c(1,1,1.2), labels = c("A", "B", "C"), align = "hv")
+dev.off()
+
+setwd(paste0(wdmain, "outputs/"))
+postscript("DataQualityPlot.eps", width = 7, height = 8, paper = "special", horizontal = F)
+
+plot_grid(sectorPlot, certaintyPlot, instrumentsPlot, nrow = 3, 
+          rel_widths = c(1,1,1.2), labels = c("A", "B", "C"), align = "hv")
+dev.off()
+
 
 # this data should also be written so that it can be used to make the treemaps
 setwd(paste0(wdmain, "data/"))
